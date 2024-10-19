@@ -15,9 +15,9 @@ def login():
         user = User.query.filter_by(login_code=login_code).first()
         if user:
             session['user_id'] = user.id
-            return redirect(url_for('dashboard'))
+            return jsonify({"success": True, "redirect": url_for('dashboard')})
         else:
-            return render_template('login.html', error="Invalid login code")
+            return jsonify({"success": False, "error": "Invalid login code"})
     return render_template('login.html')
 
 @app.route('/register', methods=['POST'])
