@@ -1,0 +1,24 @@
+Make an anonymous polling application.
+Let humans login anonymously - create a random 8 digit code for them, display it on screen, add a copy button to copy the code. When loging in, humans will only enter this code and login anonymously. There will be no code recovery. Please state this while showing the code. When user clicks on the confirmation checkbox saying "I copied my code and I saved it securely. I know that I can NOT recover my code. All my information might be lost forever.".
+Once they are registered, give them a random username like "Human0003456". This user name cannot be changed.
+After registration and login, humans come to DASHBOARD page.
+There are large buttons for different links on the dashboard:
+DEMOGRAPHICS, POLLS, LOGOUT
+DEMOGRAPHICS button opens the demographics questions page.
+There will be 10 demographics questions to be filled out for each HUMAN.
+I need you to create those 10 questions for me. Some questions might require binary choices, some require multiple choices, some need dates, some need text inputs like city names. You decide about the most suitable  type of inputs for each demographic question you will create.
+Store each humans' answers to those demographic question in the database for further recall.
+
+POLLS takes human to POLLS page. 
+There will be a button saying Participate in NEXT POLL.
+If HUman clicks on this button, a poll question and its choices will be displayed.
+Human answers and sends their response.
+Let us create 10 poll questions and their choices.
+Results page is shown - with demographics filtering options. All the previous responses from other humans will be shown on a graph and all the number of responses will be displayed for each choice. These demographics data about that specific HUMAN will be obtained from the HUMAN's responses to DEMOGRAPHICS questions. Users can choose 3 demographics criteria and set their values to intearct with the graph. Once the demographics are edited and "Show results" button is clicked, the graph updates itself and shows the data about the filtered results.
+Below there will be a Participate n NEXT POLL button, which takes the human to the next poll.
+Once the last poll is responded to, the button will turn into "No more unresponded polls:("
+Add "Return to dashboard" button so that humans can return to dashboard.
+LOGOUT button logs the human out.
+Once logged out, the login page is visible.
+On the LOGIN PAGE, there will be an input field to enter the 8 character login credentials.
+Under it there will be a login button, pressing it will log the human in.
