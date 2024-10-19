@@ -90,8 +90,9 @@ def polls():
     if 'user_id' not in session:
         flash('Please log in to access polls.', 'warning')
         return redirect(url_for('login'))
+    user_id = session['user_id']
     unanswered_polls = Poll.query.filter(
-        ~Poll.responses.any(Response.user_id == session['user_id'])
+        ~Poll.responses.any(Response.user_id == user_id)
     ).all()
     if unanswered_polls:
         poll = random.choice(unanswered_polls)
