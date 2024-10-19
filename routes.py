@@ -97,9 +97,12 @@ def polls():
         flash('Please log in to access polls.', 'warning')
         return redirect(url_for('login'))
     user_id = session['user_id']
+    
+    # Get polls that the user hasn't responded to
     unanswered_polls = Poll.query.filter(
-        ~Poll.responses.any(Response.user_id == user_id)
+        ~Poll.responses.any((Response.user_id == user_id) & (Response.responded == True))
     ).all()
+    
     if unanswered_polls:
         poll = random.choice(unanswered_polls)
         return render_template('polls.html', poll=poll)
@@ -111,12 +114,18 @@ def submit_poll():
     if 'user_id' not in session:
         flash('Please log in to submit a poll response.', 'warning')
         return redirect(url_for('login'))
+    
+    user_id = session['user_id']
     poll_id = request.form['poll_id']
     choice = request.form['choice']
-    new_response = Response()
-    new_response.user_id = session['user_id']
-    new_response.poll_id = poll_id
-    new_response.choice = choice
+    
+    # Check if the user has already answered this poll
+    existing_response = Response.query.filter_by(user_id=user_id, poll_id=poll_id, responded=True).first()
+    if existing_response:
+        flash('You have already answered this poll.', 'warning')
+        return redirect(url_for('polls'))
+    
+    new_response = Response(user_id=user_id, poll_id=poll_id, choice=choice, responded=True)
     db.session.add(new_response)
     db.session.commit()
     flash('Poll response submitted successfully!', 'success')
@@ -132,7 +141,7 @@ def results(poll_id):
         flash('Poll not found.', 'error')
         return redirect(url_for('polls'))
     
-    responses = Response.query.filter_by(poll_id=poll_id).all()
+    responses = Response.query.filter_by(poll_id=poll_id, responded=True).all()
     
     response_counts = {}
     for choice in poll.choices:
@@ -149,7 +158,7 @@ def reset_responses():
         flash('Please log in to reset responses.', 'warning')
         return redirect(url_for('login'))
     user_id = session['user_id']
-    Response.query.filter_by(user_id=user_id).delete()
+    Response.query.filter_by(user_id=user_id).update({Response.responded: False})
     db.session.commit()
     flash('Your poll responses have been reset. You can now answer polls again.', 'success')
     return redirect(url_for('polls'))

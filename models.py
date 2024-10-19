@@ -19,3 +19,6 @@ class Response(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     poll_id = db.Column(db.Integer, db.ForeignKey('poll.id'), nullable=False)
     choice = db.Column(db.String(255), nullable=False)
+    responded = db.Column(db.Boolean, default=True, nullable=False)  # New field to flag answered polls
+
+    user = db.relationship('User', backref=db.backref('responses', lazy='dynamic'))
