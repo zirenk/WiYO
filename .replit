@@ -27,6 +27,10 @@ args = "Flask Server"
 task = "workflow.run"
 args = "Run Migrations"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Debug User"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -72,6 +76,17 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "flask db upgrade"
+
+[[workflows.workflow]]
+name = "Debug User"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python debug_user.py"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
