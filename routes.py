@@ -31,7 +31,10 @@ def login():
             return jsonify({"success": True, "redirect": url_for('dashboard')})
         else:
             logger.warning(f"Failed login attempt with code: {login_code}")
-            return jsonify({"success": False, "error": "Invalid login code. Please try again."})
+            error_message = "Invalid login code. Please check your code and try again."
+            if len(login_code) != 8 or not login_code.isdigit():
+                error_message = "Login code must be 8 digits. Please enter a valid code."
+            return jsonify({"success": False, "error": error_message})
     return render_template('login.html')
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
@@ -131,7 +134,6 @@ def results(poll_id):
     
     responses = Response.query.filter_by(poll_id=poll_id).all()
     
-    # Count responses for each choice
     response_counts = {}
     for choice in poll.choices:
         response_counts[choice] = sum(1 for r in responses if r.choice == choice)
