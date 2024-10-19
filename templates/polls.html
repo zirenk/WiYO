@@ -3,8 +3,11 @@
 {% block content %}
 <h1>Polls</h1>
 {% if no_polls %}
-    <p>No more unresponded polls :(</p>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+    <div class="alert alert-info">
+        <p>You've answered all available polls. Check back later for new polls!</p>
+        <a href="{{ url_for('reset_responses') }}" class="btn btn-primary mt-3">Reset My Responses</a>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-3">Return to Dashboard</a>
 {% else %}
     <div class="card">
         <div class="card-body">

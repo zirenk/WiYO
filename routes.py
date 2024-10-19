@@ -141,6 +141,17 @@ def results(poll_id):
     
     return render_template('results.html', poll=poll, responses=responses, poll_data=response_counts)
 
+@app.route('/reset_responses')
+def reset_responses():
+    if 'user_id' not in session:
+        flash('Please log in to reset responses.', 'warning')
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    Response.query.filter_by(user_id=user_id).delete()
+    db.session.commit()
+    flash('Your poll responses have been reset. You can now answer polls again.', 'success')
+    return redirect(url_for('polls'))
+
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
