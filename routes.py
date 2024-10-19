@@ -20,14 +20,16 @@ def login():
             return jsonify({"success": False, "error": "Invalid login code"})
     return render_template('login.html')
 
-@app.route('/register', methods=['POST'])
-def register():
-    login_code = generate_login_code()
-    username = generate_username()
-    new_user = User(login_code=login_code, username=username)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"login_code": login_code, "username": username})
+@app.route('/create_wiyo_account', methods=['GET', 'POST'])
+def create_wiyo_account():
+    if request.method == 'POST':
+        login_code = generate_login_code()
+        username = generate_username()
+        new_user = User(login_code=login_code, username=username)
+        db.session.add(new_user)
+        db.session.commit()
+        return render_template('account_created.html', login_code=login_code, username=username)
+    return render_template('create_wiyo_account.html')
 
 @app.route('/dashboard')
 def dashboard():

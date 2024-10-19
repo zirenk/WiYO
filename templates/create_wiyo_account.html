@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="text-center mb-4">Create WiYO Account</h1>
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Create a free WiYO account</h2>
+                <p class="card-text">Click the button below to generate your unique WiYO account.</p>
+                <form method="POST" action="{{ url_for('create_wiyo_account') }}">
+                    <button type="submit" class="btn btn-primary">Generate WiYO Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
