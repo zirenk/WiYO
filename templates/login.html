@@ -7,28 +7,30 @@
         <div class="card">
             <div class="card-body">
                 <h2 class="card-title">Login or Register</h2>
-                {% if error %}
-                <div class="alert alert-danger" role="alert">
-                    {{ error }}
-                </div>
-                {% endif %}
-                <form method="POST" action="{{ url_for('login') }}">
+                <div id="error-message" class="alert alert-danger" style="display: none;" role="alert"></div>
+                <form id="login-form" method="POST" action="{{ url_for('login') }}">
                     <div class="mb-3">
                         <label for="login-code" class="form-label">Login Code</label>
-                        <input type="text" class="form-control" id="login-code" name="login_code" required>
+                        <input type="text" class="form-control" id="login-code" name="login_code" required pattern="[0-9]{8}" title="Please enter an 8-digit code">
                     </div>
-                    <button type="submit" class="btn btn-primary" id="login-btn" disabled>Login</button>
+                    <button type="submit" class="btn btn-primary" id="login-btn">Login</button>
                 </form>
                 <hr>
                 <h3>New User?</h3>
                 <button id="register-btn" class="btn btn-secondary">Generate Login Code</button>
-                <div id="login-code-display" class="login-code" style="display: none;"></div>
-                <button id="copy-btn" class="btn btn-info" style="display: none;">Copy Code</button>
-                <div class="form-check mt-3" style="display: none;">
-                    <input class="form-check-input" type="checkbox" id="confirm-checkbox">
-                    <label class="form-check-label" for="confirm-checkbox">
-                        I copied my code and I saved it securely. I know that I can NOT recover my code. All my information might be lost forever.
-                    </label>
+                <div id="registration-info" class="mt-3" style="display: none;">
+                    <div class="alert alert-info">
+                        <p class="mb-1">Your login code:</p>
+                        <h4 id="login-code-display" class="mb-2"></h4>
+                        <button id="copy-btn" class="btn btn-info btn-sm">Copy Code</button>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="confirm-checkbox">
+                        <label class="form-check-label" for="confirm-checkbox">
+                            I copied my code and I saved it securely. I know that I can NOT recover my code. All my information might be lost forever.
+                        </label>
+                    </div>
+                    <button id="complete-registration" class="btn btn-success mt-3" disabled>Complete Registration</button>
                 </div>
             </div>
         </div>

@@ -5,15 +5,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmCheckbox = document.getElementById('confirm-checkbox');
     const loginBtn = document.getElementById('login-btn');
     const loginForm = document.getElementById('login-form');
+    const completeRegistrationBtn = document.getElementById('complete-registration');
+    const registrationInfo = document.getElementById('registration-info');
+    const errorMessage = document.getElementById('error-message');
 
     if (registerBtn) {
         registerBtn.addEventListener('click', async function() {
             const response = await fetch('/register', { method: 'POST' });
             const data = await response.json();
             loginCodeDisplay.textContent = data.login_code;
-            loginCodeDisplay.style.display = 'block';
-            copyBtn.style.display = 'inline-block';
-            confirmCheckbox.parentElement.style.display = 'block';
+            registrationInfo.style.display = 'block';
         });
     }
 
@@ -28,7 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (confirmCheckbox) {
         confirmCheckbox.addEventListener('change', function() {
-            loginBtn.disabled = !this.checked;
+            completeRegistrationBtn.disabled = !this.checked;
+        });
+    }
+
+    if (completeRegistrationBtn) {
+        completeRegistrationBtn.addEventListener('click', function() {
+            registrationInfo.style.display = 'none';
+            loginForm.style.display = 'block';
+            document.getElementById('login-code').value = loginCodeDisplay.textContent;
         });
     }
 
@@ -36,6 +45,12 @@ document.addEventListener('DOMContentLoaded', function() {
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const loginCode = document.getElementById('login-code').value;
+            
+            if (!/^\d{8}$/.test(loginCode)) {
+                showError('Please enter a valid 8-digit login code.');
+                return;
+            }
+
             const response = await fetch('/login', {
                 method: 'POST',
                 headers: {
@@ -47,8 +62,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 window.location.href = data.redirect;
             } else {
-                alert(data.error);
+                showError(data.error);
             }
         });
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
     }
 });
