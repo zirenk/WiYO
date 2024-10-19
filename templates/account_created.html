@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="text-center mb-4">Account Created Successfully</h1>
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Your WiYO Account</h2>
+                <p class="card-text">Your account has been created successfully. Please save your login code securely.</p>
+                <div class="alert alert-info">
+                    <strong>Login Code:</strong> <span id="login-code">{{ login_code }}</span>
+                    <button class="btn btn-sm btn-secondary ms-2" onclick="copyLoginCode()">Copy</button>
+                </div>
+                <p class="card-text">Your username: {{ username }}</p>
+                <div class="alert alert-warning">
+                    <strong>Important:</strong> There is no way to recover your login code. Please store it safely.
+                </div>
+                <a href="{{ url_for('login') }}" class="btn btn-primary">Go to Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyLoginCode() {
+    const loginCode = document.getElementById('login-code').textContent;
+    navigator.clipboard.writeText(loginCode).then(() => {
+        alert('Login code copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

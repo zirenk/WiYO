@@ -3,6 +3,10 @@ from app import app, db
 from models import User, Poll, Response
 from utils import generate_login_code, generate_username
 import random
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @app.route('/')
 def index():
@@ -24,12 +28,18 @@ def login():
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
 def create_wiyo_account():
     if request.method == 'POST':
-        login_code = generate_login_code()
-        username = generate_username()
-        new_user = User(login_code=login_code, username=username)
-        db.session.add(new_user)
-        db.session.commit()
-        return render_template('account_created.html', login_code=login_code, username=username)
+        try:
+            login_code = generate_login_code()
+            username = generate_username()
+            new_user = User(login_code=login_code, username=username)
+            db.session.add(new_user)
+            db.session.commit()
+            logger.info(f"New user created: {username}")
+            return render_template('account_created.html', login_code=login_code, username=username)
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error creating new user: {str(e)}")
+            return render_template('create_wiyo_account.html', error="An error occurred while creating your account. Please try again.")
     return render_template('create_wiyo_account.html')
 
 @app.route('/dashboard')

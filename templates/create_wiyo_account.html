@@ -7,6 +7,11 @@
         <div class="card">
             <div class="card-body">
                 <h2 class="card-title">Create a free WiYO account</h2>
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                {% endif %}
                 <p class="card-text">Click the button below to generate your unique WiYO account.</p>
                 <form method="POST" action="{{ url_for('create_wiyo_account') }}">
                     <button type="submit" class="btn btn-primary">Generate WiYO Account</button>
