@@ -11,10 +11,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (registerBtn) {
         registerBtn.addEventListener('click', async function() {
-            const response = await fetch('/register', { method: 'POST' });
-            const data = await response.json();
-            loginCodeDisplay.textContent = data.login_code;
-            registrationInfo.style.display = 'block';
+            try {
+                const response = await fetch('/register', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                loginCodeDisplay.textContent = data.login_code;
+                registrationInfo.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Failed to generate login code. Please try again.');
+            }
         });
     }
 
@@ -23,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const loginCode = loginCodeDisplay.textContent;
             navigator.clipboard.writeText(loginCode).then(function() {
                 alert('Login code copied to clipboard!');
+            }).catch(function(err) {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy login code. Please try again.');
             });
         });
     }
@@ -51,18 +67,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `login_code=${encodeURIComponent(loginCode)}`,
-            });
-            const data = await response.json();
-            if (data.success) {
-                window.location.href = data.redirect;
-            } else {
-                showError(data.error);
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `login_code=${encodeURIComponent(loginCode)}`,
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    showError(data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Failed to log in. Please try again.');
             }
         });
     }
