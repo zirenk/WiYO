@@ -10,6 +10,7 @@ class User(db.Model):
 
 class Poll(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    number = db.Column(db.Integer, unique=True, nullable=False)  # New field for poll number
     question = db.Column(db.String(255), nullable=False)
     choices = db.Column(JSONB)
     responses = db.relationship('Response', backref='poll', lazy='dynamic')

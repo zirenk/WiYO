@@ -1,5 +1,5 @@
 from app import app, db
-from models import Poll
+from models import Poll, Response
 
 def add_sample_polls():
     sample_polls = [
@@ -46,13 +46,27 @@ def add_sample_polls():
     ]
 
     with app.app_context():
-        for poll_data in sample_polls:
-            poll = Poll()
-            poll.question = poll_data["question"]
-            poll.choices = poll_data["choices"]
-            db.session.add(poll)
+        existing_polls = Poll.query.order_by(Poll.number).all()
+        
+        for i, poll_data in enumerate(sample_polls, start=1):
+            if i <= len(existing_polls):
+                # Update existing poll
+                poll = existing_polls[i-1]
+                poll.question = poll_data["question"]
+                poll.choices = poll_data["choices"]
+            else:
+                # Create new poll
+                poll = Poll(number=i, question=poll_data["question"], choices=poll_data["choices"])
+                db.session.add(poll)
+        
+        # If there are more existing polls than sample polls, remove the extra ones
+        if len(existing_polls) > len(sample_polls):
+            for poll in existing_polls[len(sample_polls):]:
+                Response.query.filter_by(poll_id=poll.id).delete()
+                db.session.delete(poll)
+        
         db.session.commit()
-        print("Sample polls added successfully.")
+        print(f"{len(sample_polls)} polls have been updated or added successfully.")
 
 if __name__ == "__main__":
     add_sample_polls()
