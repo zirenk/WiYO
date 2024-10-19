@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loginCodeDisplay.textContent = data.login_code;
             loginCodeDisplay.style.display = 'block';
             copyBtn.style.display = 'inline-block';
-            confirmCheckbox.style.display = 'block';
+            confirmCheckbox.parentElement.style.display = 'block';
         });
     }
 
