@@ -1,0 +1,24 @@
+/* Custom styles to complement Bootstrap */
+.login-code {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+.poll-question {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.poll-choices {
+    margin-bottom: 20px;
+}
+
+.results-chart {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.demographic-filters {
+    margin-bottom: 20px;
+}

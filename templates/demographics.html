@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Demographics Questions</h1>
+<form method="POST" action="{{ url_for('demographics') }}">
+    <div class="mb-3">
+        <label for="age" class="form-label">Age</label>
+        <input type="number" class="form-control" id="age" name="age" required>
+    </div>
+    <div class="mb-3">
+        <label for="gender" class="form-label">Gender</label>
+        <select class="form-select" id="gender" name="gender" required>
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+            <option value="prefer_not_to_say">Prefer not to say</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="education" class="form-label">Highest Level of Education</label>
+        <select class="form-select" id="education" name="education" required>
+            <option value="">Select education level</option>
+            <option value="high_school">High School</option>
+            <option value="bachelors">Bachelor's Degree</option>
+            <option value="masters">Master's Degree</option>
+            <option value="phd">Ph.D. or higher</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="employment" class="form-label">Employment Status</label>
+        <select class="form-select" id="employment" name="employment" required>
+            <option value="">Select employment status</option>
+            <option value="employed">Employed</option>
+            <option value="unemployed">Unemployed</option>
+            <option value="self_employed">Self-employed</option>
+            <option value="student">Student</option>
+            <option value="retired">Retired</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="marital_status" class="form-label">Marital Status</label>
+        <select class="form-select" id="marital_status" name="marital_status" required>
+            <option value="">Select marital status</option>
+            <option value="single">Single</option>
+            <option value="married">Married</option>
+            <option value="divorced">Divorced</option>
+            <option value="widowed">Widowed</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="income" class="form-label">Annual Income Range</label>
+        <select class="form-select" id="income" name="income" required>
+            <option value="">Select income range</option>
+            <option value="0-25000">$0 - $25,000</option>
+            <option value="25001-50000">$25,001 - $50,000</option>
+            <option value="50001-75000">$50,001 - $75,000</option>
+            <option value="75001-100000">$75,001 - $100,000</option>
+            <option value="100001+">$100,001+</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="location" class="form-label">City of Residence</label>
+        <input type="text" class="form-control" id="location" name="location" required>
+    </div>
+    <div class="mb-3">
+        <label for="ethnicity" class="form-label">Ethnicity</label>
+        <select class="form-select" id="ethnicity" name="ethnicity" required>
+            <option value="">Select ethnicity</option>
+            <option value="white">White</option>
+            <option value="black">Black or African American</option>
+            <option value="asian">Asian</option>
+            <option value="hispanic">Hispanic or Latino</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="political_affiliation" class="form-label">Political Affiliation</label>
+        <select class="form-select" id="political_affiliation" name="political_affiliation" required>
+            <option value="">Select political affiliation</option>
+            <option value="democrat">Democrat</option>
+            <option value="republican">Republican</option>
+            <option value="independent">Independent</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="religion" class="form-label">Religious Affiliation</label>
+        <select class="form-select" id="religion" name="religion" required>
+            <option value="">Select religious affiliation</option>
+            <option value="christianity">Christianity</option>
+            <option value="islam">Islam</option>
+            <option value="judaism">Judaism</option>
+            <option value="hinduism">Hinduism</option>
+            <option value="buddhism">Buddhism</option>
+            <option value="atheism">Atheism</option>
+            <option value="agnosticism">Agnosticism</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit Demographics</button>
+</form>
+{% endblock %}
