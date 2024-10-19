@@ -55,7 +55,8 @@
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 <script>
     const pollId = {{ poll.id }};
-    const pollData = {{ poll.choices|tojson }};
-    createChart(pollData);
+    const initialPollData = {{ poll_data|tojson }};
+    console.log("Initial poll data:", initialPollData);
+    createChart(initialPollData);
 </script>
 {% endblock %}

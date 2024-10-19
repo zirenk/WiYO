@@ -40,7 +40,9 @@ def create_wiyo_account():
         try:
             login_code = generate_login_code()
             username = generate_username()
-            new_user = User(login_code=login_code, username=username)
+            new_user = User()
+            new_user.login_code = login_code
+            new_user.username = username
             db.session.add(new_user)
             db.session.commit()
             logger.info(f"New user created: {username}")
@@ -58,7 +60,7 @@ def dashboard():
         flash('Please log in to access the dashboard.', 'warning')
         return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
-    return render_template('dashboard.html', username=user.username)
+    return render_template('dashboard.html', username=user.username if user else None)
 
 @app.route('/demographics', methods=['GET', 'POST'])
 def demographics():
@@ -79,9 +81,10 @@ def demographics():
             'political_affiliation': request.form['political_affiliation'],
             'religion': request.form['religion']
         }
-        user.demographics = demographics_data
-        db.session.commit()
-        flash('Demographics information updated successfully!', 'success')
+        if user:
+            user.demographics = demographics_data
+            db.session.commit()
+            flash('Demographics information updated successfully!', 'success')
         return redirect(url_for('dashboard'))
     return render_template('demographics.html')
 
@@ -107,7 +110,10 @@ def submit_poll():
         return redirect(url_for('login'))
     poll_id = request.form['poll_id']
     choice = request.form['choice']
-    new_response = Response(user_id=session['user_id'], poll_id=poll_id, choice=choice)
+    new_response = Response()
+    new_response.user_id = session['user_id']
+    new_response.poll_id = poll_id
+    new_response.choice = choice
     db.session.add(new_response)
     db.session.commit()
     flash('Poll response submitted successfully!', 'success')
@@ -119,8 +125,21 @@ def results(poll_id):
         flash('Please log in to view poll results.', 'warning')
         return redirect(url_for('login'))
     poll = Poll.query.get(poll_id)
+    if not poll:
+        flash('Poll not found.', 'error')
+        return redirect(url_for('polls'))
+    
     responses = Response.query.filter_by(poll_id=poll_id).all()
-    return render_template('results.html', poll=poll, responses=responses)
+    
+    # Count responses for each choice
+    response_counts = {}
+    for choice in poll.choices:
+        response_counts[choice] = sum(1 for r in responses if r.choice == choice)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'pollData': response_counts})
+    
+    return render_template('results.html', poll=poll, responses=responses, poll_data=response_counts)
 
 @app.route('/logout')
 def logout():
