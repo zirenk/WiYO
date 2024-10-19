@@ -12,11 +12,8 @@
                     <form id="login-form" method="POST" action="{{ url_for('login') }}">
                         <div class="mb-3">
                             <label for="login-code" class="form-label">Login Code</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="login-code" name="login_code" required pattern="[0-9]{8}" title="Please enter an 8-digit code">
-                                <button class="btn btn-outline-secondary" type="button" id="generate-code">Generate</button>
-                            </div>
-                            <div class="form-text">Enter your 8-digit login code or generate a new one.</div>
+                            <input type="text" class="form-control" id="login-code" name="login_code" required pattern="[0-9]{8}" title="Please enter an 8-digit code">
+                            <div class="form-text">Enter your 8-digit login code.</div>
                         </div>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="remember-me" name="remember_me">
@@ -32,18 +29,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const generateCodeBtn = document.getElementById('generate-code');
-    const loginCodeInput = document.getElementById('login-code');
-
-    generateCodeBtn.addEventListener('click', function() {
-        const newCode = Math.floor(10000000 + Math.random() * 90000000).toString();
-        loginCodeInput.value = newCode;
-    });
-});
-</script>
 {% endblock %}
