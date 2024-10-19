@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: `login_code=${encodeURIComponent(loginCode)}`,
+                    body: JSON.stringify({ login_code: loginCode }),
                 });
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

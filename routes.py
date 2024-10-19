@@ -11,7 +11,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_code = request.form['login_code']
+        data = request.get_json()
+        login_code = data.get('login_code')
         user = User.query.filter_by(login_code=login_code).first()
         if user:
             session['user_id'] = user.id
