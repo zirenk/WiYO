@@ -19,16 +19,19 @@ def login():
         login_code = request.form.get('login_code')
         remember_me = 'remember_me' in request.form
 
+        logger.info(f"Login attempt with code: {login_code}")
+
         user = User.query.filter_by(login_code=login_code).first()
         if user:
             session['user_id'] = user.id
             if remember_me:
                 session.permanent = True
                 app.permanent_session_lifetime = timedelta(days=30)
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('dashboard'))
+            logger.info(f"User {user.username} logged in successfully")
+            return jsonify({"success": True, "redirect": url_for('dashboard')})
         else:
-            flash('Invalid login code. Please try again.', 'danger')
+            logger.warning(f"Failed login attempt with code: {login_code}")
+            return jsonify({"success": False, "error": "Invalid login code. Please try again."})
     return render_template('login.html')
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])

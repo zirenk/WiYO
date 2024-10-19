@@ -16,9 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify({ login_code: loginCode }),
+                    body: new URLSearchParams({
+                        'login_code': loginCode,
+                        'remember_me': document.getElementById('remember-me').checked
+                    })
                 });
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
