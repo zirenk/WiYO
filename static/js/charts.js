@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
     const pollIdElement = document.querySelector('[data-poll-id]');
     const debugMessageElement = document.getElementById('debug-message');
-    const loadingMessage = document.getElementById('loading-message');
     
     if (!applyFiltersBtn) {
         console.error("Apply filters button not found");
@@ -146,9 +145,9 @@ function showLoadingMessage() {
     if (loadingMessage) {
         loadingMessage.classList.remove('d-none');
         loadingMessage.classList.add('d-block');
-        console.log("Loading message shown");
+        console.log('Loading message shown');
     } else {
-        console.error("Loading message element not found");
+        console.error('Loading message element not found');
     }
 }
 
@@ -157,9 +156,9 @@ function hideLoadingMessage() {
     if (loadingMessage) {
         loadingMessage.classList.add('d-none');
         loadingMessage.classList.remove('d-block');
-        console.log("Loading message hidden");
+        console.log('Loading message hidden');
     } else {
-        console.error("Loading message element not found");
+        console.error('Loading message element not found');
     }
 }
 
