@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
     const pollIdElement = document.querySelector('[data-poll-id]');
     const debugMessageElement = document.getElementById('debug-message');
+    const loadingMessageElement = document.getElementById('loading-message');
     
     if (!applyFiltersBtn) {
         console.error("Apply filters button not found");
@@ -65,6 +66,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!pollIdElement) {
         console.error("Poll ID element not found");
+        return;
+    }
+
+    if (!loadingMessageElement) {
+        console.error("Loading message element not found");
         return;
     }
 
