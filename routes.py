@@ -2,9 +2,10 @@ import os
 import random
 import string
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
-from app import app, db
-from models import User, Poll, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from models import db, User, Poll, Response
+from sqlalchemy import and_
+from app import app
 from utils import generate_login_code, generate_username
 
 def generate_timestamp():
@@ -130,7 +131,23 @@ def results(poll_id):
         flash('Poll not found.', 'error')
         return redirect(url_for('polls'))
     
-    responses = Response.query.filter_by(poll_id=poll_id, responded=True).all()
+    # Get demographic filters from request
+    age = request.args.get('age')
+    gender = request.args.get('gender')
+    education = request.args.get('education')
+    
+    # Base query
+    query = Response.query.filter_by(poll_id=poll_id, responded=True)
+    
+    # Apply demographic filters
+    if age:
+        query = query.join(User).filter(User.demographics['age'].astext == age)
+    if gender:
+        query = query.join(User).filter(User.demographics['gender'].astext == gender)
+    if education:
+        query = query.join(User).filter(User.demographics['education'].astext == education)
+    
+    responses = query.all()
     
     response_counts = {}
     for choice in poll.choices:

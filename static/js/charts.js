@@ -4,13 +4,9 @@ function createChart(pollData, demographicFilters) {
 
     const ctx = document.getElementById('resultsChart').getContext('2d');
     
-    // Filter data based on demographic filters
-    const filteredData = filterData(pollData, demographicFilters);
-    console.log("Filtered Data:", filteredData);
-    
     // Prepare data for the chart
-    const labels = Object.keys(filteredData);
-    const data = Object.values(filteredData);
+    const labels = Object.keys(pollData);
+    const data = Object.values(pollData);
     
     console.log("Chart Labels:", labels);
     console.log("Chart Data:", data);
@@ -42,13 +38,6 @@ function createChart(pollData, demographicFilters) {
     });
 }
 
-function filterData(pollData, demographicFilters) {
-    // Implement filtering logic based on demographic criteria
-    // This is a placeholder and should be replaced with actual filtering logic
-    console.log("Filtering data with filters:", demographicFilters);
-    return pollData;
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
     if (applyFiltersBtn) {
@@ -59,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 education: document.getElementById('education-filter').value
             };
             // Fetch updated poll data with filters
+            const pollId = document.querySelector('[data-poll-id]').dataset.pollId;
             fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`)
                 .then(response => response.json())
                 .then(data => {
