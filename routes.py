@@ -1,4 +1,3 @@
-
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from models import db, User, Poll, Response
@@ -7,7 +6,7 @@ from app import app
 from utils import generate_login_code, generate_username
 from functools import wraps
 import traceback
-import openai
+from openai import OpenAI
 
 def login_required(f):
     @wraps(f)
@@ -89,15 +88,15 @@ def chat():
     if request.method == 'POST':
         user_message = request.form['user_message']
         
-        # Initialize OpenAI API
-        openai.api_key = os.environ.get("OPENAI_API_KEY")
+        # Initialize OpenAI client
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         
         try:
             # Include user demographics in the context
             user_context = f"User demographics: {user.demographics}"
             
             # Generate AI response
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": f"You are WiYO AI, a helpful assistant for the anonymous polling application. {user_context}"},
@@ -105,17 +104,13 @@ def chat():
                 ]
             )
             
-            ai_message = response.choices[0].message['content']
+            ai_message = response.choices[0].message.content
             
             return jsonify({"ai_message": ai_message})
         
-        except openai.error.OpenAIError as e:
-            app.logger.error(f"OpenAI API error: {str(e)}")
-            return jsonify({"error": "An error occurred while processing your request. Please try again later."}), 503
-        
         except Exception as e:
-            app.logger.error(f"Unexpected error in chat route: {str(e)}")
-            return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
+            app.logger.error(f"Error in chat route: {str(e)}")
+            return jsonify({"error": "An error occurred while processing your request. Please try again later."}), 503
     
     return render_template('chat.html', username=user.username)
 
