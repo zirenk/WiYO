@@ -151,7 +151,7 @@ def results(poll_id):
         app.logger.debug(f"Initial query: {query}")
         
         # Apply demographic filters
-        if age:
+        if age and age != 'All':
             age_range = age.split('-')
             if len(age_range) == 2:
                 min_age, max_age = int(age_range[0]), int(age_range[1])
@@ -164,10 +164,10 @@ def results(poll_id):
             elif age == '55+':
                 query = query.filter(cast(User.demographics['age'].astext, Integer) >= 55)
             app.logger.debug(f"Query after age filter: {query}")
-        if gender:
+        if gender and gender != 'All':
             query = query.filter(User.demographics['gender'].astext == gender)
             app.logger.debug(f"Query after gender filter: {query}")
-        if education:
+        if education and education != 'All':
             query = query.filter(User.demographics['education'].astext == education)
             app.logger.debug(f"Query after education filter: {query}")
         

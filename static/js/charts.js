@@ -1,8 +1,14 @@
+let chart;
+
 function createChart(pollData, demographicFilters) {
     console.log("Poll Data received:", pollData);
     console.log("Demographic Filters:", demographicFilters);
 
     const ctx = document.getElementById('resultsChart').getContext('2d');
+    
+    if (chart) {
+        chart.destroy();
+    }
     
     // Prepare data for the chart
     const labels = Object.keys(pollData);
@@ -11,7 +17,7 @@ function createChart(pollData, demographicFilters) {
     console.log("Chart Labels:", labels);
     console.log("Chart Data:", data);
 
-    new Chart(ctx, {
+    chart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
