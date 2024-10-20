@@ -8,6 +8,15 @@ from functools import wraps
 import traceback
 import openai
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -20,9 +29,9 @@ def login():
         if user:
             session['user_id'] = user.id
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('dashboard'))
+            return jsonify({"success": True, "redirect": url_for('dashboard')})
         else:
-            flash('Invalid login code. Please try again.', 'danger')
+            return jsonify({"success": False, "error": "Invalid login code. Please try again."})
     return render_template('login.html')
 
 @app.route('/logout')
@@ -32,10 +41,8 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
-    if 'user_id' not in session:
-        flash('Please log in to access the dashboard.', 'warning')
-        return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
     return render_template('dashboard.html', username=user.username)
 
@@ -51,12 +58,31 @@ def create_wiyo_account():
         return render_template('account_created.html', login_code=login_code, username=username)
     return render_template('create_wiyo_account.html')
 
+@app.route('/demographics', methods=['GET', 'POST'])
+@login_required
+def demographics():
+    user = User.query.get(session['user_id'])
+    if request.method == 'POST':
+        user.demographics = {
+            'age': request.form['age'],
+            'gender': request.form['gender'],
+            'education': request.form['education'],
+            'employment': request.form['employment'],
+            'marital_status': request.form['marital_status'],
+            'income': request.form['income'],
+            'location': request.form['location'],
+            'ethnicity': request.form['ethnicity'],
+            'political_affiliation': request.form['political_affiliation'],
+            'religion': request.form['religion']
+        }
+        db.session.commit()
+        flash('Demographics updated successfully!', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('demographics.html', user=user, edit_mode=True)
+
 @app.route('/chat', methods=['GET', 'POST'])
+@login_required
 def chat():
-    if 'user_id' not in session:
-        flash('Please log in to access the chat feature.', 'warning')
-        return redirect(url_for('login'))
-    
     user = User.query.get(session['user_id'])
     
     if request.method == 'POST':
@@ -92,4 +118,4 @@ def chat():
     
     return render_template('chat.html', username=user.username)
 
-# Add other routes (polls, demographics, etc.) here
+# Add other routes (polls, etc.) here
