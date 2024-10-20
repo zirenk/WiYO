@@ -58,13 +58,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.ai_message) {
                 displayMessage('WiYO AI', data.ai_message);
             } else if (data.error) {
-                displayMessage('Error', data.error);
+                displayErrorMessage(data.error);
             }
         } catch (error) {
             console.error('Error:', error);
             // Remove loading indicator
             loadingIndicator.remove();
-            displayMessage('Error', 'An error occurred while processing your request.');
+            displayErrorMessage('An error occurred while processing your request.');
         }
     });
 
@@ -73,6 +73,14 @@ document.addEventListener('DOMContentLoaded', function() {
         messageElement.className = 'mb-2';
         messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
         chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function displayErrorMessage(message) {
+        const errorElement = document.createElement('div');
+        errorElement.className = 'alert alert-danger mb-2';
+        errorElement.textContent = message;
+        chatMessages.appendChild(errorElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
