@@ -8,6 +8,7 @@ from sqlalchemy import and_, cast, Integer
 from app import app
 from utils import generate_login_code, generate_username
 from functools import wraps
+import traceback
 
 def generate_timestamp():
     return int(datetime.utcnow().timestamp())
@@ -143,10 +144,11 @@ def results(poll_id):
         gender = request.args.get('gender')
         education = request.args.get('education')
         
-        app.logger.debug(f"Filters - Age: {age}, Gender: {gender}, Education: {education}")
+        app.logger.debug(f"Initial filters - Age: {age}, Gender: {gender}, Education: {education}")
         
-        # Updated base query to join User table only once
+        # Base query with explicit join
         query = db.session.query(Response).join(User, Response.user_id == User.id).filter(Response.poll_id == poll_id, Response.responded == True)
+        app.logger.debug(f"Initial query: {query}")
         
         # Apply demographic filters
         if age:
@@ -161,12 +163,15 @@ def results(poll_id):
                 )
             elif age == '55+':
                 query = query.filter(cast(User.demographics['age'].astext, Integer) >= 55)
+            app.logger.debug(f"Query after age filter: {query}")
         if gender:
             query = query.filter(User.demographics['gender'].astext == gender)
+            app.logger.debug(f"Query after gender filter: {query}")
         if education:
             query = query.filter(User.demographics['education'].astext == education)
+            app.logger.debug(f"Query after education filter: {query}")
         
-        app.logger.debug(f"SQL Query: {query}")
+        app.logger.debug(f"Final SQL Query: {query}")
         
         responses = query.all()
         
@@ -185,6 +190,7 @@ def results(poll_id):
     
     except Exception as e:
         app.logger.error(f"Error in results route: {str(e)}")
+        app.logger.error(traceback.format_exc())
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'error': 'An error occurred while fetching poll data.'}), 500
         flash('An error occurred while fetching poll data.', 'error')
