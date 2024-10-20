@@ -11,7 +11,7 @@
             <form id="chat-form">
                 <div class="input-group">
                     <input type="text" id="user-message" class="form-control" placeholder="Type your message..." required>
-                    <button type="submit" class="btn btn-primary">Send</button>
+                    <button type="submit" class="btn btn-primary" id="send-button">Send</button>
                 </div>
             </form>
         </div>
@@ -25,11 +25,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatForm = document.getElementById('chat-form');
     const userMessageInput = document.getElementById('user-message');
     const chatMessages = document.getElementById('chat-messages');
+    const sendButton = document.getElementById('send-button');
+    let cooldownTimer = null;
+    let requestInProgress = false;
 
     chatForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const userMessage = userMessageInput.value.trim();
-        if (!userMessage) return;
+        if (!userMessage || requestInProgress) return;
 
         // Display user message
         displayMessage('You', userMessage);
@@ -37,6 +40,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Show loading indicator
         const loadingIndicator = displayLoadingIndicator();
+        requestInProgress = true;
+        disableSendButton();
 
         try {
             const response = await fetch('/chat', {
@@ -55,18 +60,47 @@ document.addEventListener('DOMContentLoaded', function() {
             // Remove loading indicator
             loadingIndicator.remove();
 
-            if (data.ai_message) {
+            if (data.status === 'queued') {
+                displayMessage('System', data.message);
+                pollForResponse();
+            } else if (data.ai_message) {
                 displayMessage('WiYO AI', data.ai_message);
             } else if (data.error) {
                 displayErrorMessage(data.error);
+                if (response.status === 429) {
+                    startCooldown(60); // 1-minute cooldown for rate limit errors
+                }
             }
         } catch (error) {
             console.error('Error:', error);
-            // Remove loading indicator
             loadingIndicator.remove();
-            displayErrorMessage('An error occurred while processing your request.');
+            displayErrorMessage('An error occurred while processing your request. Please try again later.');
+        } finally {
+            requestInProgress = false;
+            enableSendButton();
         }
     });
+
+    function pollForResponse() {
+        const pollInterval = setInterval(async () => {
+            try {
+                const response = await fetch('/chat/status');
+                const data = await response.json();
+
+                if (data.status === 'complete') {
+                    clearInterval(pollInterval);
+                    displayMessage('WiYO AI', data.ai_message);
+                } else if (data.status === 'error') {
+                    clearInterval(pollInterval);
+                    displayErrorMessage(data.message);
+                }
+            } catch (error) {
+                console.error('Error polling for response:', error);
+                clearInterval(pollInterval);
+                displayErrorMessage('An error occurred while retrieving the response. Please try again.');
+            }
+        }, 5000); // Poll every 5 seconds
+    }
 
     function displayMessage(sender, message) {
         const messageElement = document.createElement('div');
@@ -91,6 +125,28 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.appendChild(loadingElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         return loadingElement;
+    }
+
+    function startCooldown(seconds) {
+        disableSendButton();
+        let remainingTime = seconds;
+        cooldownTimer = setInterval(() => {
+            sendButton.textContent = `Wait (${remainingTime}s)`;
+            remainingTime--;
+            if (remainingTime < 0) {
+                clearInterval(cooldownTimer);
+                enableSendButton();
+            }
+        }, 1000);
+    }
+
+    function disableSendButton() {
+        sendButton.disabled = true;
+    }
+
+    function enableSendButton() {
+        sendButton.disabled = false;
+        sendButton.textContent = 'Send';
     }
 });
 </script>

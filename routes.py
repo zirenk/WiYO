@@ -8,6 +8,29 @@ from functools import wraps
 import traceback
 from openai import OpenAI
 from openai import APIError, RateLimitError
+import time
+import random
+from queue import Queue
+import threading
+
+# Create a queue for handling API requests
+api_request_queue = Queue()
+
+# Function to process API requests from the queue
+def process_api_requests():
+    while True:
+        user_id, user_message = api_request_queue.get()
+        try:
+            response = make_openai_request(user_id, user_message)
+            # Store the response or notify the user
+        except Exception as e:
+            # Handle errors
+            pass
+        api_request_queue.task_done()
+
+# Start the background thread for processing API requests
+api_thread = threading.Thread(target=process_api_requests, daemon=True)
+api_thread.start()
 
 def login_required(f):
     @wraps(f)
@@ -81,16 +104,11 @@ def demographics():
         return redirect(url_for('dashboard'))
     return render_template('demographics.html', user=user, edit_mode=True)
 
-@app.route('/chat', methods=['GET', 'POST'])
-@login_required
-def chat():
-    user = User.query.get(session['user_id'])
+def make_openai_request(user_id, user_message, max_retries=5, base_delay=1):
+    user = User.query.get(user_id)
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     
-    if request.method == 'POST':
-        user_message = request.form['user_message']
-        
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-        
+    for attempt in range(max_retries):
         try:
             user_context = f"User demographics: {user.demographics}"
             
@@ -102,23 +120,67 @@ def chat():
                 ]
             )
             
-            ai_message = response.choices[0].message.content
-            
-            return jsonify({"ai_message": ai_message})
+            return response.choices[0].message.content
         
         except RateLimitError:
-            app.logger.error("OpenAI API rate limit exceeded")
-            return jsonify({"error": "Our AI is currently experiencing high demand. Please try again in a few minutes."}), 429
+            if attempt == max_retries - 1:
+                raise
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            time.sleep(delay)
         
         except APIError as e:
             app.logger.error(f"OpenAI API error: {str(e)}")
-            return jsonify({"error": "An error occurred while processing your request. Please try again later."}), 503
+            raise
         
         except Exception as e:
             app.logger.error(f"Unexpected error in chat route: {str(e)}")
-            return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
+            raise
+
+@app.route('/chat', methods=['GET', 'POST'])
+@login_required
+def chat():
+    user = User.query.get(session['user_id'])
+    
+    if request.method == 'POST':
+        user_message = request.form['user_message']
+        
+        try:
+            # Add the request to the queue
+            api_request_queue.put((user.id, user_message))
+            
+            return jsonify({
+                "status": "queued",
+                "message": "Your request has been queued. Please wait for the response."
+            })
+        
+        except Exception as e:
+            app.logger.error(f"Unexpected error in chat route: {str(e)}")
+            return jsonify({
+                "error": "An unexpected error occurred. Please try again later.",
+                "details": str(e)
+            }), 500
     
     return render_template('chat.html', username=user.username)
+
+@app.route('/chat/status', methods=['GET'])
+@login_required
+def chat_status():
+    user = User.query.get(session['user_id'])
+    # Check if there's a response ready for this user
+    # This is a placeholder - you'll need to implement a way to store and retrieve responses
+    response_ready = False
+    ai_message = None
+    
+    if response_ready:
+        return jsonify({
+            "status": "complete",
+            "ai_message": ai_message
+        })
+    else:
+        return jsonify({
+            "status": "pending",
+            "message": "Your request is still being processed. Please wait."
+        })
 
 @app.route('/polls')
 @login_required
