@@ -1,4 +1,5 @@
 import os
+import time
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -19,6 +20,10 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 db.init_app(app)
 migrate.init_app(app, db)
+
+@app.context_processor
+def inject_timestamp():
+    return dict(timestamp=int(time.time()))
 
 with app.app_context():
     import models

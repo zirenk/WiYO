@@ -100,3 +100,14 @@
     width: 1.5rem;
     height: 1.5rem;
 }
+
+/* Wiyo logo styles */
+.wiyo-logo {
+    height: 30px;
+    margin-right: 10px;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+}
