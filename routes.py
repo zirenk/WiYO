@@ -1,60 +1,55 @@
-from flask import render_template, request, redirect, url_for, session, jsonify, flash
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from app import app, db
 from models import User, Poll, Response
-from utils import generate_login_code, generate_username
 import random
+from sqlalchemy import func
 import logging
-from datetime import timedelta
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @app.route('/')
 def index():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_code = request.form.get('login_code')
-        remember_me = 'remember_me' in request.form
-
+        login_code = request.form['login_code']
         logger.info(f"Login attempt with code: {login_code}")
-
         user = User.query.filter_by(login_code=login_code).first()
         if user:
             session['user_id'] = user.id
-            if remember_me:
-                session.permanent = True
-                app.permanent_session_lifetime = timedelta(days=30)
             logger.info(f"User {user.username} logged in successfully")
-            return jsonify({"success": True, "redirect": url_for('dashboard')})
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'redirect': url_for('dashboard')})
+            return redirect(url_for('dashboard'))
         else:
-            logger.warning(f"Failed login attempt with code: {login_code}")
-            error_message = "Invalid login code. Please check your code and try again."
-            if len(login_code) != 8 or not login_code.isdigit():
-                error_message = "Login code must be 8 digits. Please enter a valid code."
-            return jsonify({"success": False, "error": error_message})
+            logger.info(f"Failed login attempt with code: {login_code}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'error': 'Invalid login code'})
+            flash('Invalid login code', 'danger')
     return render_template('login.html')
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
 def create_wiyo_account():
     if request.method == 'POST':
-        try:
-            login_code = generate_login_code()
-            username = generate_username()
-            new_user = User()
-            new_user.login_code = login_code
-            new_user.username = username
-            db.session.add(new_user)
-            db.session.commit()
-            logger.info(f"New user created: {username}")
-            return render_template('account_created.html', login_code=login_code, username=username)
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Error creating new user: {str(e)}")
-            flash('An error occurred while creating your account. Please try again.', 'danger')
-            return render_template('create_wiyo_account.html')
+        login_code = ''.join([str(random.randint(0, 9)) for _ in range(8)])
+        username = f"Human{random.randint(1000000, 9999999)}"
+        
+        existing_user = User.query.filter((User.login_code == login_code) | (User.username == username)).first()
+        if existing_user:
+            flash('An error occurred. Please try again.', 'danger')
+            return redirect(url_for('create_wiyo_account'))
+        
+        new_user = User(login_code=login_code, username=username)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Account created successfully!', 'success')
+        return render_template('account_created.html', login_code=login_code, username=username)
     return render_template('create_wiyo_account.html')
 
 @app.route('/dashboard')
@@ -63,33 +58,37 @@ def dashboard():
         flash('Please log in to access the dashboard.', 'warning')
         return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
-    return render_template('dashboard.html', username=user.username if user else None)
+    return render_template('dashboard.html', username=user.username)
 
 @app.route('/demographics', methods=['GET', 'POST'])
 def demographics():
     if 'user_id' not in session:
         flash('Please log in to access demographics.', 'warning')
         return redirect(url_for('login'))
+    
     user = User.query.get(session['user_id'])
+    
     if request.method == 'POST':
-        demographics_data = {
-            'age': request.form['age'],
-            'gender': request.form['gender'],
-            'education': request.form['education'],
-            'employment': request.form['employment'],
-            'marital_status': request.form['marital_status'],
-            'income': request.form['income'],
-            'location': request.form['location'],
-            'ethnicity': request.form['ethnicity'],
-            'political_affiliation': request.form['political_affiliation'],
-            'religion': request.form['religion']
-        }
-        if user:
-            user.demographics = demographics_data
+        if 'edit_demographics' in request.form:
+            return render_template('demographics.html', user=user, edit_mode=True)
+        else:
+            user.demographics = {
+                'age': request.form['age'],
+                'gender': request.form['gender'],
+                'education': request.form['education'],
+                'employment': request.form['employment'],
+                'marital_status': request.form['marital_status'],
+                'income': request.form['income'],
+                'location': request.form['location'],
+                'ethnicity': request.form['ethnicity'],
+                'political_affiliation': request.form['political_affiliation'],
+                'religion': request.form['religion']
+            }
             db.session.commit()
-            flash('Demographics information updated successfully!', 'success')
-        return redirect(url_for('dashboard'))
-    return render_template('demographics.html')
+            flash('Demographics updated successfully!', 'success')
+            return redirect(url_for('demographics'))
+    
+    return render_template('demographics.html', user=user, edit_mode=False)
 
 @app.route('/polls')
 def polls():
