@@ -143,34 +143,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function showLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
-    const loadingProgress = document.getElementById('loading-progress');
-    const loadingText = document.getElementById('loading-text');
-    if (loadingMessage && loadingProgress && loadingText) {
+    if (loadingMessage) {
         loadingMessage.classList.remove('d-none');
         loadingMessage.classList.add('d-block');
         
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            if (progress <= 100) {
-                loadingProgress.style.width = `${progress}%`;
-                loadingProgress.setAttribute('aria-valuenow', progress);
-                
-                if (progress < 30) {
-                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Applying demographic filters...';
-                } else if (progress < 60) {
-                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching filtered poll results...';
-                } else if (progress < 90) {
-                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Preparing chart data...';
+        const loadingProgress = document.getElementById('loading-progress');
+        const loadingText = document.getElementById('loading-text');
+        
+        if (loadingProgress && loadingText) {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                if (progress <= 100) {
+                    loadingProgress.style.width = `${progress}%`;
+                    loadingProgress.setAttribute('aria-valuenow', progress);
+                    
+                    if (progress < 30) {
+                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Applying demographic filters...';
+                    } else if (progress < 60) {
+                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching filtered poll results...';
+                    } else if (progress < 90) {
+                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Preparing chart data...';
+                    } else {
+                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Finalizing results...';
+                    }
                 } else {
-                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Finalizing results...';
+                    clearInterval(interval);
                 }
-            } else {
-                clearInterval(interval);
-            }
-        }, 200);
+            }, 200);
+        }
     } else {
-        console.warn("Loading message elements not found");
+        console.warn("Loading message element not found");
     }
 }
 
