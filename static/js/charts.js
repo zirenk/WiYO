@@ -143,18 +143,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function showLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
-    if (loadingMessage) {
+    const loadingProgress = document.getElementById('loading-progress');
+    const loadingText = document.getElementById('loading-text');
+    if (loadingMessage && loadingProgress && loadingText) {
         loadingMessage.classList.remove('d-none');
-        loadingMessage.classList.add('d-flex');
+        loadingMessage.classList.add('d-block');
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            if (progress <= 100) {
+                loadingProgress.style.width = `${progress}%`;
+                loadingProgress.setAttribute('aria-valuenow', progress);
+                
+                if (progress < 30) {
+                    loadingText.textContent = 'Applying demographic filters...';
+                } else if (progress < 60) {
+                    loadingText.textContent = 'Fetching filtered poll results...';
+                } else if (progress < 90) {
+                    loadingText.textContent = 'Preparing chart data...';
+                } else {
+                    loadingText.textContent = 'Finalizing results...';
+                }
+            } else {
+                clearInterval(interval);
+            }
+        }, 200);
     } else {
-        console.warn("Loading message element not found");
+        console.warn("Loading message elements not found");
     }
 }
 
 function hideLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
     if (loadingMessage) {
-        loadingMessage.classList.remove('d-flex');
+        loadingMessage.classList.remove('d-block');
         loadingMessage.classList.add('d-none');
     } else {
         console.warn("Loading message element not found");
