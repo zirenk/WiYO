@@ -112,6 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log("Fetched data:", data);
                 if (data.pollData) {
                     showDebugMessage('Data fetched successfully');
+                    setTimeout(() => {
+                        hideDebugMessage();
+                    }, 3000); // Hide after 3 seconds
                     createChart(data.pollData, demographicFilters);
                 } else if (data.error) {
                     throw new Error(data.error);
@@ -141,7 +144,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function showLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
     if (loadingMessage) {
-        loadingMessage.style.display = 'block';
+        loadingMessage.classList.remove('d-none');
+        loadingMessage.classList.add('d-flex');
     } else {
         console.warn("Loading message element not found");
     }
@@ -150,7 +154,8 @@ function showLoadingMessage() {
 function hideLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
     if (loadingMessage) {
-        loadingMessage.style.display = 'none';
+        loadingMessage.classList.remove('d-flex');
+        loadingMessage.classList.add('d-none');
     } else {
         console.warn("Loading message element not found");
     }
@@ -160,9 +165,18 @@ function showDebugMessage(message) {
     const debugMessageElement = document.getElementById('debug-message');
     if (debugMessageElement) {
         debugMessageElement.textContent = message;
-        debugMessageElement.style.display = 'block';
+        debugMessageElement.classList.remove('d-none');
+        debugMessageElement.classList.add('d-block');
     } else {
         console.warn("Debug message element not found");
+    }
+}
+
+function hideDebugMessage() {
+    const debugMessageElement = document.getElementById('debug-message');
+    if (debugMessageElement) {
+        debugMessageElement.classList.remove('d-block');
+        debugMessageElement.classList.add('d-none');
     }
 }
 
@@ -170,7 +184,8 @@ function showError(message) {
     const errorMessageElement = document.getElementById('error-message');
     if (errorMessageElement) {
         errorMessageElement.textContent = message;
-        errorMessageElement.style.display = 'block';
+        errorMessageElement.classList.remove('d-none');
+        errorMessageElement.classList.add('d-block');
     } else {
         console.warn("Error message element not found");
         alert(message); // Fallback to alert if error message element is not found
