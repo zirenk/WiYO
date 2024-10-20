@@ -27,22 +27,27 @@ def login():
         try:
             login_code = request.form['login_code']
             user = User.query.filter_by(login_code=login_code).first()
+            
+            is_ajax_request = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+            
             if user:
                 session['user_id'] = user.id
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                if is_ajax_request:
                     return jsonify({'success': True, 'redirect': url_for('dashboard')})
                 flash('Logged in successfully!', 'success')
                 return redirect(url_for('dashboard'))
             else:
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                if is_ajax_request:
                     return jsonify({'success': False, 'error': 'Invalid login code'})
                 flash('Invalid login code. Please try again.', 'danger')
+                return render_template('login.html')
         except Exception as e:
             app.logger.error(f'Error in login route: {str(e)}')
             app.logger.error(traceback.format_exc())
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if is_ajax_request:
                 return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
             flash('An unexpected error occurred. Please try again.', 'danger')
+            return render_template('login.html')
     return render_template('login.html')
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
