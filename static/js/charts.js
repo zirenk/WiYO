@@ -49,6 +49,7 @@ function createChart(pollData, demographicFilters) {
         });
     } catch (error) {
         console.error("Error creating chart:", error);
+        showError("An error occurred while creating the chart. Please try again.");
     }
 }
 
@@ -77,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!ageFilter || !genderFilter || !educationFilter) {
             console.error("One or more filter elements not found");
+            showError("An error occurred while applying filters. Please try again.");
             return;
         }
 
@@ -89,17 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Applying filters:", demographicFilters);
 
         // Show loading message
-        if (loadingMessage) {
-            loadingMessage.style.display = 'block';
-        } else {
-            console.warn("Loading message element not found");
-        }
-
-        if (debugMessageElement) {
-            debugMessageElement.style.display = 'none';
-        } else {
-            console.warn("Debug message element not found");
-        }
+        showLoadingMessage();
 
         // Fetch updated poll data with filters
         fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`, {
@@ -115,16 +107,11 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 // Hide loading message
-                if (loadingMessage) {
-                    loadingMessage.style.display = 'none';
-                }
+                hideLoadingMessage();
 
                 console.log("Fetched data:", data);
                 if (data.pollData) {
-                    if (debugMessageElement) {
-                        debugMessageElement.textContent = 'Data fetched successfully';
-                        debugMessageElement.style.display = 'block';
-                    }
+                    showDebugMessage('Data fetched successfully');
                     createChart(data.pollData, demographicFilters);
                 } else if (data.error) {
                     throw new Error(data.error);
@@ -134,15 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 // Hide loading message
-                if (loadingMessage) {
-                    loadingMessage.style.display = 'none';
-                }
+                hideLoadingMessage();
 
                 console.error('Error fetching poll data:', error);
-                if (debugMessageElement) {
-                    debugMessageElement.textContent = `Error: ${error.message}`;
-                    debugMessageElement.style.display = 'block';
-                }
+                showError(`Error: ${error.message}`);
             });
     });
     
@@ -152,5 +134,45 @@ document.addEventListener('DOMContentLoaded', function() {
         createChart(initialPollData);
     } else {
         console.warn("Initial poll data not found");
+        showError("Initial poll data not found. Please try refreshing the page.");
     }
 });
+
+function showLoadingMessage() {
+    const loadingMessage = document.getElementById('loading-message');
+    if (loadingMessage) {
+        loadingMessage.style.display = 'block';
+    } else {
+        console.warn("Loading message element not found");
+    }
+}
+
+function hideLoadingMessage() {
+    const loadingMessage = document.getElementById('loading-message');
+    if (loadingMessage) {
+        loadingMessage.style.display = 'none';
+    } else {
+        console.warn("Loading message element not found");
+    }
+}
+
+function showDebugMessage(message) {
+    const debugMessageElement = document.getElementById('debug-message');
+    if (debugMessageElement) {
+        debugMessageElement.textContent = message;
+        debugMessageElement.style.display = 'block';
+    } else {
+        console.warn("Debug message element not found");
+    }
+}
+
+function showError(message) {
+    const errorMessageElement = document.getElementById('error-message');
+    if (errorMessageElement) {
+        errorMessageElement.textContent = message;
+        errorMessageElement.style.display = 'block';
+    } else {
+        console.warn("Error message element not found");
+        alert(message); // Fallback to alert if error message element is not found
+    }
+}

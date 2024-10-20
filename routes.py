@@ -144,7 +144,7 @@ def results(poll_id):
         gender = request.args.get('gender')
         education = request.args.get('education')
         
-        app.logger.debug(f"Initial filters - Age: {age}, Gender: {gender}, Education: {education}")
+        app.logger.debug(f"Received filters - Age: {age}, Gender: {gender}, Education: {education}")
         
         # Base query with explicit join
         query = db.session.query(Response).join(User, Response.user_id == User.id).filter(Response.poll_id == poll_id, Response.responded == True)
