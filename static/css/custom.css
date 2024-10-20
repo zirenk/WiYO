@@ -57,3 +57,32 @@
     border-color: var(--bs-primary);
     box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
 }
+
+/* Flash message styles */
+.alert-dismissible {
+    padding-right: 3rem;
+}
+
+.alert-success {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+    color: var(--bs-white);
+}
+
+.alert-danger {
+    background-color: var(--bs-danger);
+    border-color: var(--bs-danger);
+    color: var(--bs-white);
+}
+
+.alert-warning {
+    background-color: var(--bs-warning);
+    border-color: var(--bs-warning);
+    color: var(--bs-dark);
+}
+
+.alert-info {
+    background-color: var(--bs-info);
+    border-color: var(--bs-info);
+    color: var(--bs-white);
+}
