@@ -31,6 +31,10 @@ args = "Run Migrations"
 task = "workflow.run"
 args = "Debug User"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Display Schema"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -87,6 +91,17 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python debug_user.py"
+
+[[workflows.workflow]]
+name = "Display Schema"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python display_schema.py"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
