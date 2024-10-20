@@ -4,9 +4,10 @@ import string
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from models import db, User, Poll, Response
-from sqlalchemy import and_
+from sqlalchemy import and_, cast, Integer
 from app import app
 from utils import generate_login_code, generate_username
+from functools import wraps
 
 def generate_timestamp():
     return int(datetime.utcnow().timestamp())
@@ -141,7 +142,17 @@ def results(poll_id):
     
     # Apply demographic filters
     if age:
-        query = query.join(User).filter(User.demographics['age'].astext == age)
+        age_range = age.split('-')
+        if len(age_range) == 2:
+            min_age, max_age = int(age_range[0]), int(age_range[1])
+            query = query.join(User).filter(
+                and_(
+                    cast(User.demographics['age'].astext, Integer) >= min_age,
+                    cast(User.demographics['age'].astext, Integer) <= max_age
+                )
+            )
+        elif age == '55+':
+            query = query.join(User).filter(cast(User.demographics['age'].astext, Integer) >= 55)
     if gender:
         query = query.join(User).filter(User.demographics['gender'].astext == gender)
     if education:
