@@ -60,15 +60,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
             
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            
-            const data = await response.json();
-            if (data.success) {
-                window.location.href = data.redirect;
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    showError(data.error || 'An error occurred during login.');
+                }
             } else {
-                showError(data.error || 'An error occurred during login.');
+                throw new Error('Received non-JSON response from server');
             }
         } catch (error) {
             console.error('Error:', error);

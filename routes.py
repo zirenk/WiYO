@@ -24,15 +24,25 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_code = request.form['login_code']
-        user = User.query.filter_by(login_code=login_code).first()
-        if user:
-            session['user_id'] = user.id
-            flash('Logged in successfully!', 'success')
-            return jsonify({'success': True, 'redirect': url_for('dashboard')})
-        else:
-            flash('Invalid login code. Please try again.', 'danger')
-            return jsonify({'success': False, 'error': 'Invalid login code'})
+        try:
+            login_code = request.form['login_code']
+            user = User.query.filter_by(login_code=login_code).first()
+            if user:
+                session['user_id'] = user.id
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({'success': True, 'redirect': url_for('dashboard')})
+                flash('Logged in successfully!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({'success': False, 'error': 'Invalid login code'})
+                flash('Invalid login code. Please try again.', 'danger')
+        except Exception as e:
+            app.logger.error(f'Error in login route: {str(e)}')
+            app.logger.error(traceback.format_exc())
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
+            flash('An unexpected error occurred. Please try again.', 'danger')
     return render_template('login.html')
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
