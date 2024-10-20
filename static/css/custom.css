@@ -1,12 +1,84 @@
-/* Custom styles to complement Bootstrap */
-.login-code {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 20px 0;
+:root {
+    --wiyo-pink: #E91E63;
+    --wiyo-dark-gray: #333333;
+    --wiyo-light-gray: #F5F5F5;
+    --wiyo-white: #FFFFFF;
 }
 
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+.navbar {
+    background-color: var(--wiyo-pink) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand img {
+    margin-right: 10px;
+    height: 30px;  /* Ensure the logo is the correct size */
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: var(--wiyo-pink);
+    color: var(--wiyo-white);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-weight: 500;
+}
+
+.form-control:focus {
+    border-color: var(--wiyo-pink);
+    box-shadow: 0 0 0 0.2rem rgba(233, 30, 99, 0.25);
+}
+
+/* Login page styles */
+.btn-primary {
+    background-color: var(--wiyo-pink);
+    border-color: var(--wiyo-pink);
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: #C2185B;  /* Darker shade of WiYO pink */
+    border-color: #C2185B;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border-color: var(--wiyo-pink);
+    color: var(--wiyo-pink);
+}
+
+.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+    background-color: var(--wiyo-pink);
+    border-color: var(--wiyo-pink);
+    color: var(--wiyo-white);
+}
+
+/* Dashboard styles */
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.card-text {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--wiyo-pink);
+}
+
+/* Poll styles */
 .poll-question {
-    font-size: 18px;
+    font-size: 1.5rem;
+    font-weight: 500;
     margin-bottom: 20px;
 }
 
@@ -14,89 +86,37 @@
     margin-bottom: 20px;
 }
 
-.results-chart {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
+/* Results page styles */
 .demographic-filters {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
-/* New styles for login page and flash messages */
-.card {
-    border: none;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+.results-chart {
+    margin-top: 30px;
 }
 
-.alert {
-    margin-bottom: 1rem;
+/* Custom styles for dashboard elements */
+.list-group-item {
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.125);
 }
 
-.btn-primary {
-    background-color: var(--bs-primary);
-    border-color: var(--bs-primary);
+.badge {
+    font-size: 0.9rem;
 }
 
-.btn-primary:hover {
-    background-color: var(--bs-primary-dark);
-    border-color: var(--bs-primary-dark);
+.btn-block {
+    display: block;
+    width: 100%;
 }
 
-.btn-secondary {
-    background-color: var(--bs-secondary);
-    border-color: var(--bs-secondary);
+canvas {
+    max-height: 300px;
 }
 
-.btn-secondary:hover {
-    background-color: var(--bs-secondary-dark);
-    border-color: var(--bs-secondary-dark);
-}
-
-.form-control:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-/* Flash message styles */
-.alert-dismissible {
-    padding-right: 3rem;
-}
-
-.alert-success {
-    background-color: var(--bs-success);
-    border-color: var(--bs-success);
-    color: var(--bs-white);
-}
-
-.alert-danger {
-    background-color: var(--bs-danger);
-    border-color: var(--bs-danger);
-    color: var(--bs-white);
-}
-
-.alert-warning {
-    background-color: var(--bs-warning);
-    border-color: var(--bs-warning);
-    color: var(--bs-dark);
-}
-
-.alert-info {
-    background-color: var(--bs-info);
-    border-color: var(--bs-info);
-    color: var(--bs-white);
-}
-
-/* Loading message styles */
-#loading-message {
-    display: none;
-}
-
-#loading-progress {
-    transition: width 0.5s ease;
-}
-
-.spinner-border {
-    width: 1.5rem;
-    height: 1.5rem;
+/* Responsive styles */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 15px;
+    }
 }

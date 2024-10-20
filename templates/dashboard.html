@@ -1,16 +1,246 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Welcome, {{ username }}!</h1>
-<div class="row mt-4">
-    <div class="col-md-4">
-        <a href="{{ url_for('demographics') }}" class="btn btn-primary btn-lg btn-block mb-3">Demographics</a>
+<div class="container">
+    <h1 class="mb-4">Ambassador Dashboard</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="timeframe">Timeframe:</label>
+                <select class="form-select" id="timeframe">
+                    <option value="all-time">All-time</option>
+                    <option value="this-month">This Month</option>
+                    <option value="this-year">This Year</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="people">People:</label>
+                <select class="form-select" id="people">
+                    <option value="all">All</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <select class="form-select" id="category">
+                    <option value="all">All</option>
+                </select>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <a href="{{ url_for('polls') }}" class="btn btn-success btn-lg btn-block mb-3">Polls</a>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Followers</h5>
+                    <p class="card-text">27/80</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Published Polls</h5>
+                    <p class="card-text">3,298</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Responses</h5>
+                    <p class="card-text">2m 34s</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Activity</h5>
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-lg btn-block mb-3">Logout</a>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Shared Polls</h5>
+                    <p class="card-text">64%</p>
+                    <canvas id="sharedPollsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Favorite Polls</h5>
+                    <p class="card-text">86%</p>
+                    <canvas id="favoritePollsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Polls</h5>
+                    <p class="card-text">+34%</p>
+                    <canvas id="pendingPollsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Weakest Categories</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Food Safety
+                            <span class="badge bg-primary rounded-pill">74% Correct</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Compliance Basics Procedures
+                            <span class="badge bg-primary rounded-pill">52% Correct</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Company Networking
+                            <span class="badge bg-primary rounded-pill">36% Correct</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Strongest Categories</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Covid Protocols
+                            <span class="badge bg-success rounded-pill">95% Correct</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Cyber Security Basics
+                            <span class="badge bg-success rounded-pill">92% Correct</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Social Media Policies
+                            <span class="badge bg-success rounded-pill">89% Correct</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activity Chart
+    var activityCtx = document.getElementById('activityChart').getContext('2d');
+    var activityChart = new Chart(activityCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Activity',
+                data: [65, 59, 80, 81, 56, 55, 40, 65, 59, 80, 81, 56],
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Shared Polls Chart
+    var sharedPollsCtx = document.getElementById('sharedPollsChart').getContext('2d');
+    var sharedPollsChart = new Chart(sharedPollsCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Shared Polls',
+                data: [12, 19, 3, 5, 2, 3],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Favorite Polls Chart
+    var favoritePollsCtx = document.getElementById('favoritePollsChart').getContext('2d');
+    var favoritePollsChart = new Chart(favoritePollsCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Favorite Polls',
+                data: [12, 19, 3, 5, 2, 3],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Pending Polls Chart
+    var pendingPollsCtx = document.getElementById('pendingPollsChart').getContext('2d');
+    var pendingPollsChart = new Chart(pendingPollsCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Pending Polls',
+                data: [12, 19, 3, 5, 2, 3],
+                borderColor: 'rgba(255, 206, 86, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
