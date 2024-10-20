@@ -92,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Show loading message and spinner
         showLoadingMessage();
-        console.log("showLoadingMessage called");
 
         // Fetch updated poll data with filters
         fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`, {
@@ -109,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 // Hide loading message
                 hideLoadingMessage();
-                console.log("hideLoadingMessage called");
 
                 console.log("Fetched data:", data);
                 if (data.pollData) {
@@ -127,7 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 // Hide loading message
                 hideLoadingMessage();
-                console.log("hideLoadingMessage called");
 
                 console.error('Error fetching poll data:', error);
                 showError(`Error: ${error.message}`);
@@ -149,32 +146,7 @@ function showLoadingMessage() {
     if (loadingMessage) {
         loadingMessage.classList.remove('d-none');
         loadingMessage.classList.add('d-block');
-        
-        const loadingProgress = document.getElementById('loading-progress');
-        const loadingText = document.getElementById('loading-text');
-        
-        if (loadingProgress && loadingText) {
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                if (progress <= 100) {
-                    loadingProgress.style.width = `${progress}%`;
-                    loadingProgress.setAttribute('aria-valuenow', progress);
-                    
-                    if (progress < 30) {
-                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Applying demographic filters...';
-                    } else if (progress < 60) {
-                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching filtered poll results...';
-                    } else if (progress < 90) {
-                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Preparing chart data...';
-                    } else {
-                        loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Finalizing results...';
-                    }
-                } else {
-                    clearInterval(interval);
-                }
-            }, 200);
-        }
+        console.log("Loading message shown");
     } else {
         console.error("Loading message element not found");
     }
@@ -185,6 +157,7 @@ function hideLoadingMessage() {
     if (loadingMessage) {
         loadingMessage.classList.add('d-none');
         loadingMessage.classList.remove('d-block');
+        console.log("Loading message hidden");
     } else {
         console.error("Loading message element not found");
     }
