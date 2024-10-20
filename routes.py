@@ -7,6 +7,7 @@ from utils import generate_login_code, generate_username
 from functools import wraps
 import traceback
 from openai import OpenAI
+from openai import APIError, RateLimitError
 
 def login_required(f):
     @wraps(f)
@@ -88,14 +89,11 @@ def chat():
     if request.method == 'POST':
         user_message = request.form['user_message']
         
-        # Initialize OpenAI client
         client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
         
         try:
-            # Include user demographics in the context
             user_context = f"User demographics: {user.demographics}"
             
-            # Generate AI response
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -108,9 +106,17 @@ def chat():
             
             return jsonify({"ai_message": ai_message})
         
-        except Exception as e:
-            app.logger.error(f"Error in chat route: {str(e)}")
+        except RateLimitError:
+            app.logger.error("OpenAI API rate limit exceeded")
+            return jsonify({"error": "Our AI is currently experiencing high demand. Please try again in a few minutes."}), 429
+        
+        except APIError as e:
+            app.logger.error(f"OpenAI API error: {str(e)}")
             return jsonify({"error": "An error occurred while processing your request. Please try again later."}), 503
+        
+        except Exception as e:
+            app.logger.error(f"Unexpected error in chat route: {str(e)}")
+            return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
     
     return render_template('chat.html', username=user.username)
 
