@@ -54,6 +54,7 @@ function createChart(pollData, demographicFilters) {
 
 function showLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
+    console.log("Loading message element:", loadingMessage);
     if (loadingMessage) {
         loadingMessage.classList.remove('d-none');
         loadingMessage.classList.add('d-block');
@@ -65,6 +66,7 @@ function showLoadingMessage() {
 
 function hideLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
+    console.log("Loading message element:", loadingMessage);
     if (loadingMessage) {
         loadingMessage.classList.add('d-none');
         loadingMessage.classList.remove('d-block');
@@ -106,10 +108,15 @@ function showError(message) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM fully loaded");
     const applyFiltersBtn = document.getElementById('apply-filters');
     const pollIdElement = document.querySelector('[data-poll-id]');
     const loadingMessageElement = document.getElementById('loading-message');
     
+    console.log("Apply filters button:", applyFiltersBtn);
+    console.log("Poll ID element:", pollIdElement);
+    console.log("Loading message element:", loadingMessageElement);
+
     if (!applyFiltersBtn) {
         console.error("Apply filters button not found");
         return;
