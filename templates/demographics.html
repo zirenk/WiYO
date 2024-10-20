@@ -3,11 +3,12 @@
 {% block content %}
 <h1>Demographics</h1>
 <form method="POST" action="{{ url_for('demographics') }}">
-    {% if not edit_mode %}
     <div class="mb-3">
+        {% if not edit_mode %}
         <button type="submit" name="edit_demographics" class="btn btn-primary">Edit Demographics</button>
+        {% endif %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
-    {% endif %}
     <div class="mb-3">
         <label for="age" class="form-label">Age</label>
         <input type="number" class="form-control" id="age" name="age" value="{{ user.demographics.age }}" {% if not edit_mode %}readonly{% endif %} required>
