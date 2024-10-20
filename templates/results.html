@@ -42,7 +42,7 @@
 </div>
 
 <div class="results-chart">
-    <canvas id="resultsChart"></canvas>
+    <canvas id="resultsChart" data-poll-id="{{ poll.id }}"></canvas>
 </div>
 
 <a href="{{ url_for('polls') }}" class="btn btn-primary mt-3">Participate in Next Poll</a>
@@ -52,11 +52,8 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 <script>
-    const pollId = {{ poll.id }};
-    const initialPollData = {{ poll_data|tojson }};
-    console.log("Initial poll data:", initialPollData);
-    createChart(initialPollData);
+    window.initialPollData = {{ poll_data|tojson }};
 </script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 {% endblock %}

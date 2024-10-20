@@ -40,7 +40,11 @@ function createChart(pollData, demographicFilters) {
 
 document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
-    if (applyFiltersBtn) {
+    const pollIdElement = document.querySelector('[data-poll-id]');
+    
+    if (applyFiltersBtn && pollIdElement) {
+        const pollId = pollIdElement.dataset.pollId;
+        
         applyFiltersBtn.addEventListener('click', function() {
             const demographicFilters = {
                 age: document.getElementById('age-filter').value,
@@ -48,14 +52,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 education: document.getElementById('education-filter').value
             };
             // Fetch updated poll data with filters
-            const pollId = document.querySelector('[data-poll-id]').dataset.pollId;
             fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("Fetched data:", data);
-                    createChart(data.pollData, demographicFilters);
+                    if (data.pollData) {
+                        createChart(data.pollData, demographicFilters);
+                    } else {
+                        console.error("No poll data received from the server");
+                    }
                 })
                 .catch(error => console.error('Error fetching poll data:', error));
         });
+    } else {
+        console.warn("Apply filters button or poll ID element not found");
+    }
+    
+    // Initial chart creation
+    const initialPollData = window.initialPollData;
+    if (initialPollData) {
+        createChart(initialPollData);
     }
 });
