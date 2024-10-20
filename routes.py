@@ -1,3 +1,4 @@
+
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from models import db, User, Poll, Response
@@ -118,4 +119,48 @@ def chat():
     
     return render_template('chat.html', username=user.username)
 
-# Add other routes (polls, etc.) here
+@app.route('/polls')
+@login_required
+def polls():
+    user = User.query.get(session['user_id'])
+    unanswered_polls = Poll.query.outerjoin(Response, and_(Response.poll_id == Poll.id, Response.user_id == user.id)).filter(Response.id == None).order_by(Poll.number).first()
+
+    if unanswered_polls:
+        return render_template('polls.html', poll=unanswered_polls)
+    else:
+        return render_template('polls.html', no_polls=True)
+
+@app.route('/submit_poll', methods=['POST'])
+@login_required
+def submit_poll():
+    user = User.query.get(session['user_id'])
+    poll_id = request.form['poll_id']
+    choice = request.form['choice']
+
+    response = Response(user_id=user.id, poll_id=poll_id, choice=choice)
+    db.session.add(response)
+    db.session.commit()
+
+    flash('Your response has been recorded.', 'success')
+    return redirect(url_for('polls'))
+
+@app.route('/results/<int:poll_id>')
+@login_required
+def results(poll_id):
+    poll = Poll.query.get_or_404(poll_id)
+    responses = Response.query.filter_by(poll_id=poll_id).all()
+    
+    results = {choice: 0 for choice in poll.choices}
+    for response in responses:
+        results[response.choice] += 1
+
+    return render_template('results.html', poll=poll, results=results)
+
+@app.route('/reset_responses')
+@login_required
+def reset_responses():
+    user = User.query.get(session['user_id'])
+    Response.query.filter_by(user_id=user.id).delete()
+    db.session.commit()
+    flash('Your responses have been reset. You can now answer the polls again.', 'success')
+    return redirect(url_for('polls'))
