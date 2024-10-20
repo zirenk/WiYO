@@ -16,17 +16,21 @@ import threading
 # Create a queue for handling API requests
 api_request_queue = Queue()
 
+# Dictionary to store responses
+user_responses = {}
+
 # Function to process API requests from the queue
 def process_api_requests():
     while True:
         user_id, user_message = api_request_queue.get()
         try:
             response = make_openai_request(user_id, user_message)
-            # Store the response or notify the user
+            user_responses[user_id] = response
+            app.logger.info(f"Response stored for user {user_id}")
         except Exception as e:
-            # Handle errors
-            pass
-        api_request_queue.task_done()
+            app.logger.error(f"Error processing request for user {user_id}: {str(e)}")
+        finally:
+            api_request_queue.task_done()
 
 # Start the background thread for processing API requests
 api_thread = threading.Thread(target=process_api_requests, daemon=True)
@@ -112,6 +116,7 @@ def make_openai_request(user_id, user_message, max_retries=5, base_delay=1):
         try:
             user_context = f"User demographics: {user.demographics}"
             
+            app.logger.info(f"Sending request to OpenAI API for user {user_id}")
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -120,20 +125,24 @@ def make_openai_request(user_id, user_message, max_retries=5, base_delay=1):
                 ]
             )
             
-            return response.choices[0].message.content
+            ai_message = response.choices[0].message.content
+            app.logger.info(f"Received response from OpenAI API for user {user_id}")
+            return ai_message
         
         except RateLimitError:
             if attempt == max_retries - 1:
+                app.logger.error(f"Rate limit exceeded for user {user_id} after {max_retries} attempts")
                 raise
             delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            app.logger.warning(f"Rate limit hit for user {user_id}. Retrying in {delay} seconds")
             time.sleep(delay)
         
         except APIError as e:
-            app.logger.error(f"OpenAI API error: {str(e)}")
+            app.logger.error(f"OpenAI API error for user {user_id}: {str(e)}")
             raise
         
         except Exception as e:
-            app.logger.error(f"Unexpected error in chat route: {str(e)}")
+            app.logger.error(f"Unexpected error in make_openai_request for user {user_id}: {str(e)}")
             raise
 
 @app.route('/chat', methods=['GET', 'POST'])
@@ -147,6 +156,7 @@ def chat():
         try:
             # Add the request to the queue
             api_request_queue.put((user.id, user_message))
+            app.logger.info(f"Request queued for user {user.id}")
             
             return jsonify({
                 "status": "queued",
@@ -154,7 +164,7 @@ def chat():
             })
         
         except Exception as e:
-            app.logger.error(f"Unexpected error in chat route: {str(e)}")
+            app.logger.error(f"Unexpected error in chat route for user {user.id}: {str(e)}")
             return jsonify({
                 "error": "An unexpected error occurred. Please try again later.",
                 "details": str(e)
@@ -166,17 +176,16 @@ def chat():
 @login_required
 def chat_status():
     user = User.query.get(session['user_id'])
-    # Check if there's a response ready for this user
-    # This is a placeholder - you'll need to implement a way to store and retrieve responses
-    response_ready = False
-    ai_message = None
     
-    if response_ready:
+    if user.id in user_responses:
+        ai_message = user_responses.pop(user.id)
+        app.logger.info(f"Response retrieved for user {user.id}")
         return jsonify({
             "status": "complete",
             "ai_message": ai_message
         })
     else:
+        app.logger.info(f"No response available yet for user {user.id}")
         return jsonify({
             "status": "pending",
             "message": "Your request is still being processed. Please wait."

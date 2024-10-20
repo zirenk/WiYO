@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function pollForResponse() {
+        let attempts = 0;
+        const maxAttempts = 60; // 5 minutes (60 * 5 seconds)
         const pollInterval = setInterval(async () => {
             try {
                 const response = await fetch('/chat/status');
@@ -93,6 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (data.status === 'error') {
                     clearInterval(pollInterval);
                     displayErrorMessage(data.message);
+                } else {
+                    attempts++;
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        displayErrorMessage('Request timed out. Please try again.');
+                    }
                 }
             } catch (error) {
                 console.error('Error polling for response:', error);
