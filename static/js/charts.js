@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log("Applying filters:", demographicFilters);
 
-        // Show loading message
+        // Show loading message and spinner
         showLoadingMessage();
 
         // Fetch updated poll data with filters
@@ -157,13 +157,13 @@ function showLoadingMessage() {
                 loadingProgress.setAttribute('aria-valuenow', progress);
                 
                 if (progress < 30) {
-                    loadingText.textContent = 'Applying demographic filters...';
+                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Applying demographic filters...';
                 } else if (progress < 60) {
-                    loadingText.textContent = 'Fetching filtered poll results...';
+                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching filtered poll results...';
                 } else if (progress < 90) {
-                    loadingText.textContent = 'Preparing chart data...';
+                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Preparing chart data...';
                 } else {
-                    loadingText.textContent = 'Finalizing results...';
+                    loadingText.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Finalizing results...';
                 }
             } else {
                 clearInterval(interval);
