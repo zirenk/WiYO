@@ -14,6 +14,7 @@ function createChart(pollData, demographicFilters) {
         chart.destroy();
     }
     
+    // Prepare data for the chart
     const labels = Object.keys(pollData);
     const data = Object.values(pollData);
     
@@ -52,27 +53,134 @@ function createChart(pollData, demographicFilters) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    const applyFiltersBtn = document.getElementById('apply-filters');
+    const pollIdElement = document.querySelector('[data-poll-id]');
+    const debugMessageElement = document.getElementById('debug-message');
+    const loadingMessage = document.getElementById('loading-message');
+    
+    if (!applyFiltersBtn) {
+        console.error("Apply filters button not found");
+        return;
+    }
+
+    if (!pollIdElement) {
+        console.error("Poll ID element not found");
+        return;
+    }
+
+    const pollId = pollIdElement.dataset.pollId;
+    
+    applyFiltersBtn.addEventListener('click', function() {
+        const ageFilter = document.getElementById('age-filter');
+        const genderFilter = document.getElementById('gender-filter');
+        const educationFilter = document.getElementById('education-filter');
+
+        if (!ageFilter || !genderFilter || !educationFilter) {
+            console.error("One or more filter elements not found");
+            showError("An error occurred while applying filters. Please try again.");
+            return;
+        }
+
+        const demographicFilters = {
+            age: ageFilter.value,
+            gender: genderFilter.value,
+            education: educationFilter.value
+        };
+
+        console.log("Applying filters:", demographicFilters);
+
+        // Show loading message
+        showLoadingMessage();
+
+        // Fetch updated poll data with filters
+        fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading message
+                hideLoadingMessage();
+
+                console.log("Fetched data:", data);
+                if (data.pollData) {
+                    showDebugMessage('Data fetched successfully');
+                    setTimeout(() => {
+                        hideDebugMessage();
+                    }, 3000); // Hide after 3 seconds
+                    createChart(data.pollData, demographicFilters);
+                } else if (data.error) {
+                    throw new Error(data.error);
+                } else {
+                    throw new Error("Unexpected response format");
+                }
+            })
+            .catch(error => {
+                // Hide loading message
+                hideLoadingMessage();
+
+                console.error('Error fetching poll data:', error);
+                showError(`Error: ${error.message}`);
+            });
+    });
+    
+    // Initial chart creation
+    const initialPollData = window.initialPollData;
+    if (initialPollData) {
+        createChart(initialPollData);
+    } else {
+        console.warn("Initial poll data not found");
+        showError("Initial poll data not found. Please try refreshing the page.");
+    }
+});
+
 function showLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
-    console.log("Loading message element:", loadingMessage);
-    if (loadingMessage) {
+    const loadingProgress = document.getElementById('loading-progress');
+    const loadingText = document.getElementById('loading-text');
+    if (loadingMessage && loadingProgress && loadingText) {
         loadingMessage.classList.remove('d-none');
         loadingMessage.classList.add('d-block');
-        console.log('Loading message shown');
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            if (progress <= 100) {
+                loadingProgress.style.width = `${progress}%`;
+                loadingProgress.setAttribute('aria-valuenow', progress);
+                
+                if (progress < 30) {
+                    loadingText.textContent = 'Applying demographic filters...';
+                } else if (progress < 60) {
+                    loadingText.textContent = 'Fetching filtered poll results...';
+                } else if (progress < 90) {
+                    loadingText.textContent = 'Preparing chart data...';
+                } else {
+                    loadingText.textContent = 'Finalizing results...';
+                }
+            } else {
+                clearInterval(interval);
+            }
+        }, 200);
     } else {
-        console.error('Loading message element not found');
+        console.warn("Loading message elements not found");
     }
 }
 
 function hideLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
-    console.log("Loading message element:", loadingMessage);
     if (loadingMessage) {
-        loadingMessage.classList.add('d-none');
         loadingMessage.classList.remove('d-block');
-        console.log('Loading message hidden');
+        loadingMessage.classList.add('d-none');
     } else {
-        console.error('Loading message element not found');
+        console.warn("Loading message element not found");
     }
 }
 
@@ -103,98 +211,6 @@ function showError(message) {
         errorMessageElement.classList.add('d-block');
     } else {
         console.warn("Error message element not found");
-        alert(message);
+        alert(message); // Fallback to alert if error message element is not found
     }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM fully loaded");
-    const applyFiltersBtn = document.getElementById('apply-filters');
-    const pollIdElement = document.querySelector('[data-poll-id]');
-    const loadingMessageElement = document.getElementById('loading-message');
-    
-    console.log("Apply filters button:", applyFiltersBtn);
-    console.log("Poll ID element:", pollIdElement);
-    console.log("Loading message element:", loadingMessageElement);
-
-    if (!applyFiltersBtn) {
-        console.error("Apply filters button not found");
-        return;
-    }
-
-    if (!pollIdElement) {
-        console.error("Poll ID element not found");
-        return;
-    }
-
-    if (!loadingMessageElement) {
-        console.error("Loading message element not found");
-        return;
-    }
-
-    const pollId = pollIdElement.dataset.pollId;
-    
-    applyFiltersBtn.addEventListener('click', function() {
-        const ageFilter = document.getElementById('age-filter');
-        const genderFilter = document.getElementById('gender-filter');
-        const educationFilter = document.getElementById('education-filter');
-
-        if (!ageFilter || !genderFilter || !educationFilter) {
-            console.error("One or more filter elements not found");
-            showError("An error occurred while applying filters. Please try again.");
-            return;
-        }
-
-        const demographicFilters = {
-            age: ageFilter.value,
-            gender: genderFilter.value,
-            education: educationFilter.value
-        };
-
-        console.log("Applying filters:", demographicFilters);
-
-        showLoadingMessage();
-
-        fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                hideLoadingMessage();
-
-                console.log("Fetched data:", data);
-                if (data.pollData) {
-                    showDebugMessage('Data fetched successfully');
-                    setTimeout(() => {
-                        hideDebugMessage();
-                    }, 3000);
-                    createChart(data.pollData, demographicFilters);
-                } else if (data.error) {
-                    throw new Error(data.error);
-                } else {
-                    throw new Error("Unexpected response format");
-                }
-            })
-            .catch(error => {
-                hideLoadingMessage();
-
-                console.error('Error fetching poll data:', error);
-                showError(`Error: ${error.message}`);
-            });
-    });
-    
-    const initialPollData = window.initialPollData;
-    if (initialPollData) {
-        createChart(initialPollData);
-    } else {
-        console.warn("Initial poll data not found");
-        showError("Initial poll data not found. Please try refreshing the page.");
-    }
-});
