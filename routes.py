@@ -29,9 +29,10 @@ def login():
         if user:
             session['user_id'] = user.id
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('dashboard'))
+            return jsonify({'success': True, 'redirect': url_for('dashboard')})
         else:
             flash('Invalid login code. Please try again.', 'danger')
+            return jsonify({'success': False, 'error': 'Invalid login code'})
     return render_template('login.html')
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
@@ -139,18 +140,15 @@ def results(poll_id):
         return redirect(url_for('polls'))
     
     try:
-        # Get demographic filters from request
         age = request.args.get('age')
         gender = request.args.get('gender')
         education = request.args.get('education')
         
         app.logger.debug(f"Received filters - Age: {age}, Gender: {gender}, Education: {education}")
         
-        # Base query with explicit join
         query = db.session.query(Response).join(User, Response.user_id == User.id).filter(Response.poll_id == poll_id, Response.responded == True)
         app.logger.debug(f"Initial query: {query}")
         
-        # Apply demographic filters
         if age and age != 'All':
             age_range = age.split('-')
             if len(age_range) == 2:
