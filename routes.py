@@ -143,6 +143,8 @@ def results(poll_id):
         gender = request.args.get('gender')
         education = request.args.get('education')
         
+        app.logger.debug(f"Filters - Age: {age}, Gender: {gender}, Education: {education}")
+        
         # Base query
         query = Response.query.filter_by(poll_id=poll_id, responded=True).join(User)
         
@@ -164,11 +166,17 @@ def results(poll_id):
         if education:
             query = query.filter(User.demographics['education'].astext == education)
         
+        app.logger.debug(f"SQL Query: {query}")
+        
         responses = query.all()
+        
+        app.logger.debug(f"Number of responses: {len(responses)}")
         
         response_counts = {}
         for choice in poll.choices:
             response_counts[choice] = sum(1 for r in responses if r.choice == choice)
+        
+        app.logger.debug(f"Response counts: {response_counts}")
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return jsonify({'pollData': response_counts})

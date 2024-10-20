@@ -41,7 +41,7 @@ function createChart(pollData, demographicFilters) {
 document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
     const pollIdElement = document.querySelector('[data-poll-id]');
-    const errorMessageElement = document.getElementById('error-message');
+    const debugMessageElement = document.getElementById('debug-message');
     
     if (applyFiltersBtn && pollIdElement) {
         const pollId = pollIdElement.dataset.pollId;
@@ -67,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     console.log("Fetched data:", data);
                     if (data.pollData) {
-                        errorMessageElement.style.display = 'none';
+                        debugMessageElement.textContent = 'Data fetched successfully';
+                        debugMessageElement.style.display = 'block';
                         createChart(data.pollData, demographicFilters);
                     } else if (data.error) {
                         throw new Error(data.error);
@@ -77,8 +78,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(error => {
                     console.error('Error fetching poll data:', error);
-                    errorMessageElement.textContent = error.message;
-                    errorMessageElement.style.display = 'block';
+                    debugMessageElement.textContent = `Error: ${error.message}`;
+                    debugMessageElement.style.display = 'block';
                 });
         });
     } else {
