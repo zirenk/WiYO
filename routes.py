@@ -146,7 +146,7 @@ def results(poll_id):
         app.logger.debug(f"Filters - Age: {age}, Gender: {gender}, Education: {education}")
         
         # Updated base query to join User table only once
-        query = db.session.query(Response).join(User).filter(Response.poll_id == poll_id, Response.responded == True)
+        query = db.session.query(Response).join(User, Response.user_id == User.id).filter(Response.poll_id == poll_id, Response.responded == True)
         
         # Apply demographic filters
         if age:
