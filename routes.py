@@ -144,25 +144,25 @@ def results(poll_id):
         education = request.args.get('education')
         
         # Base query
-        query = Response.query.filter_by(poll_id=poll_id, responded=True)
+        query = Response.query.filter_by(poll_id=poll_id, responded=True).join(User)
         
         # Apply demographic filters
         if age:
             age_range = age.split('-')
             if len(age_range) == 2:
                 min_age, max_age = int(age_range[0]), int(age_range[1])
-                query = query.join(User).filter(
+                query = query.filter(
                     and_(
                         cast(User.demographics['age'].astext, Integer) >= min_age,
                         cast(User.demographics['age'].astext, Integer) <= max_age
                     )
                 )
             elif age == '55+':
-                query = query.join(User).filter(cast(User.demographics['age'].astext, Integer) >= 55)
+                query = query.filter(cast(User.demographics['age'].astext, Integer) >= 55)
         if gender:
-            query = query.join(User).filter(User.demographics['gender'].astext == gender)
+            query = query.filter(User.demographics['gender'].astext == gender)
         if education:
-            query = query.join(User).filter(User.demographics['education'].astext == education)
+            query = query.filter(User.demographics['education'].astext == education)
         
         responses = query.all()
         
