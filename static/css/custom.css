@@ -38,13 +38,13 @@ body {
 }
 
 .btn-primary {
-    background-color: var(--bs-primary-dark);
-    border-color: var(--bs-primary-dark);
+    background-color: #E72264;
+    border-color: #E72264;
 }
 
 .btn-primary:hover {
-    background-color: var(--bs-primary);
-    border-color: var(--bs-primary);
+    background-color: #D41E59;
+    border-color: #D41E59;
 }
 
 .btn-secondary {
