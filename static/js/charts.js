@@ -41,6 +41,7 @@ function createChart(pollData, demographicFilters) {
 document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
     const pollIdElement = document.querySelector('[data-poll-id]');
+    const errorMessageElement = document.getElementById('error-message');
     
     if (applyFiltersBtn && pollIdElement) {
         const pollId = pollIdElement.dataset.pollId;
@@ -52,17 +53,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 education: document.getElementById('education-filter').value
             };
             // Fetch updated poll data with filters
-            fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`)
-                .then(response => response.json())
+            fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     console.log("Fetched data:", data);
                     if (data.pollData) {
+                        errorMessageElement.style.display = 'none';
                         createChart(data.pollData, demographicFilters);
+                    } else if (data.error) {
+                        throw new Error(data.error);
                     } else {
-                        console.error("No poll data received from the server");
+                        throw new Error("Unexpected response format");
                     }
                 })
-                .catch(error => console.error('Error fetching poll data:', error));
+                .catch(error => {
+                    console.error('Error fetching poll data:', error);
+                    errorMessageElement.textContent = error.message;
+                    errorMessageElement.style.display = 'block';
+                });
         });
     } else {
         console.warn("Apply filters button or poll ID element not found");

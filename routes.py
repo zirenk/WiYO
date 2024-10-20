@@ -125,49 +125,62 @@ def submit_poll():
 @app.route('/results/<int:poll_id>')
 def results(poll_id):
     if 'user_id' not in session:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'Please log in to view poll results.'}), 401
         flash('Please log in to view poll results.', 'warning')
         return redirect(url_for('login'))
+    
     poll = Poll.query.get(poll_id)
     if not poll:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'Poll not found.'}), 404
         flash('Poll not found.', 'error')
         return redirect(url_for('polls'))
     
-    # Get demographic filters from request
-    age = request.args.get('age')
-    gender = request.args.get('gender')
-    education = request.args.get('education')
-    
-    # Base query
-    query = Response.query.filter_by(poll_id=poll_id, responded=True)
-    
-    # Apply demographic filters
-    if age:
-        age_range = age.split('-')
-        if len(age_range) == 2:
-            min_age, max_age = int(age_range[0]), int(age_range[1])
-            query = query.join(User).filter(
-                and_(
-                    cast(User.demographics['age'].astext, Integer) >= min_age,
-                    cast(User.demographics['age'].astext, Integer) <= max_age
+    try:
+        # Get demographic filters from request
+        age = request.args.get('age')
+        gender = request.args.get('gender')
+        education = request.args.get('education')
+        
+        # Base query
+        query = Response.query.filter_by(poll_id=poll_id, responded=True)
+        
+        # Apply demographic filters
+        if age:
+            age_range = age.split('-')
+            if len(age_range) == 2:
+                min_age, max_age = int(age_range[0]), int(age_range[1])
+                query = query.join(User).filter(
+                    and_(
+                        cast(User.demographics['age'].astext, Integer) >= min_age,
+                        cast(User.demographics['age'].astext, Integer) <= max_age
+                    )
                 )
-            )
-        elif age == '55+':
-            query = query.join(User).filter(cast(User.demographics['age'].astext, Integer) >= 55)
-    if gender:
-        query = query.join(User).filter(User.demographics['gender'].astext == gender)
-    if education:
-        query = query.join(User).filter(User.demographics['education'].astext == education)
+            elif age == '55+':
+                query = query.join(User).filter(cast(User.demographics['age'].astext, Integer) >= 55)
+        if gender:
+            query = query.join(User).filter(User.demographics['gender'].astext == gender)
+        if education:
+            query = query.join(User).filter(User.demographics['education'].astext == education)
+        
+        responses = query.all()
+        
+        response_counts = {}
+        for choice in poll.choices:
+            response_counts[choice] = sum(1 for r in responses if r.choice == choice)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'pollData': response_counts})
+        
+        return render_template('results.html', poll=poll, responses=responses, poll_data=response_counts)
     
-    responses = query.all()
-    
-    response_counts = {}
-    for choice in poll.choices:
-        response_counts[choice] = sum(1 for r in responses if r.choice == choice)
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({'pollData': response_counts})
-    
-    return render_template('results.html', poll=poll, responses=responses, poll_data=response_counts)
+    except Exception as e:
+        app.logger.error(f"Error in results route: {str(e)}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'An error occurred while fetching poll data.'}), 500
+        flash('An error occurred while fetching poll data.', 'error')
+        return redirect(url_for('polls'))
 
 @app.route('/reset_responses')
 def reset_responses():
