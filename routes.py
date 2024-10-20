@@ -68,4 +68,19 @@ def create_wiyo_account():
     
     return render_template('create_wiyo_account.html')
 
+@app.route('/polls')
+def polls():
+    if 'user_id' not in session:
+        flash('Please log in to access the polls.', 'warning')
+        return redirect(url_for('login'))
+    
+    user = User.query.get(session['user_id'])
+    unanswered_polls = Poll.query.outerjoin(Response, and_(Response.poll_id == Poll.id, Response.user_id == user.id)).filter(Response.id == None).order_by(Poll.number).all()
+    
+    if not unanswered_polls:
+        return render_template('polls.html', no_polls=True)
+    
+    next_poll = unanswered_polls[0]
+    return render_template('polls.html', poll=next_poll)
+
 # Add other routes as needed
