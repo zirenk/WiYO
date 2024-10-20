@@ -1,4 +1,8 @@
 /* Custom styles to complement Bootstrap */
+body {
+    background-color: var(--bs-light);
+}
+
 .login-code {
     font-size: 24px;
     font-weight: bold;
@@ -23,7 +27,7 @@
     margin-bottom: 20px;
 }
 
-/* New styles for login page and flash messages */
+/* Styles for login page and flash messages */
 .card {
     border: none;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
@@ -34,13 +38,13 @@
 }
 
 .btn-primary {
-    background-color: var(--bs-primary);
-    border-color: var(--bs-primary);
+    background-color: var(--bs-primary-dark);
+    border-color: var(--bs-primary-dark);
 }
 
 .btn-primary:hover {
-    background-color: var(--bs-primary-dark);
-    border-color: var(--bs-primary-dark);
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
 }
 
 .btn-secondary {
