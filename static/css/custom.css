@@ -86,3 +86,14 @@
     border-color: var(--bs-info);
     color: var(--bs-white);
 }
+
+/* Loading message styles */
+#loading-message {
+    display: flex;
+    align-items: center;
+}
+
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+}

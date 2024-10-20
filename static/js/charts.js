@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const applyFiltersBtn = document.getElementById('apply-filters');
     const pollIdElement = document.querySelector('[data-poll-id]');
     const debugMessageElement = document.getElementById('debug-message');
+    const loadingMessage = document.getElementById('loading-message');
     
     if (applyFiltersBtn && pollIdElement) {
         const pollId = pollIdElement.dataset.pollId;
@@ -58,6 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 gender: document.getElementById('gender-filter').value,
                 education: document.getElementById('education-filter').value
             };
+
+            // Show loading message
+            loadingMessage.style.display = 'block';
+            debugMessageElement.style.display = 'none';
+
             // Fetch updated poll data with filters
             fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`, {
                 headers: {
@@ -71,6 +77,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
+                    // Hide loading message
+                    loadingMessage.style.display = 'none';
+
                     console.log("Fetched data:", data);
                     if (data.pollData) {
                         debugMessageElement.textContent = 'Data fetched successfully';
@@ -83,6 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
                 .catch(error => {
+                    // Hide loading message
+                    loadingMessage.style.display = 'none';
+
                     console.error('Error fetching poll data:', error);
                     debugMessageElement.textContent = `Error: ${error.message}`;
                     debugMessageElement.style.display = 'block';
