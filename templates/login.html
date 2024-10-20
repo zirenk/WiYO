@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'remember_me': document.getElementById('remember-me').checked
                 })
             });
-            
+
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
                 const data = await response.json();

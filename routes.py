@@ -26,29 +26,24 @@ def login():
     if request.method == 'POST':
         try:
             login_code = request.form['login_code']
+            remember_me = 'remember_me' in request.form
+
             user = User.query.filter_by(login_code=login_code).first()
-            
-            is_ajax_request = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-            
             if user:
                 session['user_id'] = user.id
-                if is_ajax_request:
-                    return jsonify({'success': True, 'redirect': url_for('dashboard')})
+                if remember_me:
+                    session.permanent = True
                 flash('Logged in successfully!', 'success')
-                return redirect(url_for('dashboard'))
+                return jsonify({'success': True, 'redirect': url_for('dashboard')})
             else:
-                if is_ajax_request:
-                    return jsonify({'success': False, 'error': 'Invalid login code'})
-                flash('Invalid login code. Please try again.', 'danger')
-                return render_template('login.html')
+                return jsonify({'success': False, 'error': 'Invalid login code'}), 401
+
         except Exception as e:
-            app.logger.error(f'Error in login route: {str(e)}')
+            app.logger.error(f"Error in login route: {str(e)}")
             app.logger.error(traceback.format_exc())
-            if is_ajax_request:
-                return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
-            flash('An unexpected error occurred. Please try again.', 'danger')
-            return render_template('login.html')
-    return render_template('login.html')
+            return jsonify({'success': False, 'error': 'An unexpected error occurred'}), 500
+    else:
+        return render_template('login.html')
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
 def create_wiyo_account():
