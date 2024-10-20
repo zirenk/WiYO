@@ -1,32 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h1 class="text-center mb-4">WiYO Anonymous Polling</h1>
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title">Login</h2>
-                <div id="error-message" class="alert alert-danger" style="display: none;" role="alert"></div>
-                <form id="login-form" method="POST" action="{{ url_for('login') }}">
-                    <div class="mb-3">
-                        <label for="login-code" class="form-label">Login Code</label>
-                        <input type="text" class="form-control" id="login-code" name="login_code" required pattern="[0-9]{8}" title="Please enter an 8-digit code">
-                        <div class="form-text">Enter your 8-digit login code.</div>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember-me" name="remember_me">
-                        <label class="form-check-label" for="remember-me">Remember me</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100" id="login-btn">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                </form>
-                <hr>
-                <h3>New User?</h3>
-                <a href="{{ url_for('create_wiyo_account') }}" class="btn btn-secondary w-100">
-                    <i class="fas fa-user-plus"></i> Create a free WiYO account
-                </a>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h1 class="text-center mb-4">Anonymous Polling App</h1>
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Login</h2>
+                    <div id="error-message" class="alert alert-danger" style="display: none;" role="alert"></div>
+                    <form id="login-form" method="POST" action="{{ url_for('login') }}">
+                        <div class="mb-3">
+                            <label for="login-code" class="form-label">Login Code</label>
+                            <input type="text" class="form-control" id="login-code" name="login_code" required pattern="[0-9]{8}" title="Please enter an 8-digit code">
+                            <div class="form-text">Enter your 8-digit login code.</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-me" name="remember_me">
+                            <label class="form-check-label" for="remember-me">Remember me</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="login-btn">Login</button>
+                    </form>
+                    <hr>
+                    <h3>New User?</h3>
+                    <a href="{{ url_for('create_wiyo_account') }}" class="btn btn-secondary w-100">Create a free WiYO account</a>
+                </div>
             </div>
         </div>
     </div>
