@@ -24,11 +24,14 @@ def process_api_requests():
     while True:
         user_id, user_message = api_request_queue.get()
         try:
-            response = make_openai_request(user_id, user_message)
-            user_responses[user_id] = response
-            app.logger.info(f"Response stored for user {user_id}")
+            app.logger.info(f"Processing request for user {user_id}")
+            with app.app_context():
+                response = make_openai_request(user_id, user_message)
+                user_responses[user_id] = response
+                app.logger.info(f"Response stored for user {user_id}: {response[:50]}...")
         except Exception as e:
             app.logger.error(f"Error processing request for user {user_id}: {str(e)}")
+            app.logger.error(traceback.format_exc())
         finally:
             api_request_queue.task_done()
 
@@ -143,6 +146,7 @@ def make_openai_request(user_id, user_message, max_retries=5, base_delay=1):
         
         except Exception as e:
             app.logger.error(f"Unexpected error in make_openai_request for user {user_id}: {str(e)}")
+            app.logger.error(traceback.format_exc())
             raise
 
 @app.route('/chat', methods=['GET', 'POST'])
@@ -165,6 +169,7 @@ def chat():
         
         except Exception as e:
             app.logger.error(f"Unexpected error in chat route for user {user.id}: {str(e)}")
+            app.logger.error(traceback.format_exc())
             return jsonify({
                 "error": "An unexpected error occurred. Please try again later.",
                 "details": str(e)
@@ -179,7 +184,7 @@ def chat_status():
     
     if user.id in user_responses:
         ai_message = user_responses.pop(user.id)
-        app.logger.info(f"Response retrieved for user {user.id}")
+        app.logger.info(f"Response retrieved for user {user.id}: {ai_message[:50]}...")
         return jsonify({
             "status": "complete",
             "ai_message": ai_message
