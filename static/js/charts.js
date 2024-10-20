@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Show loading message and spinner
         showLoadingMessage();
+        console.log("showLoadingMessage called");
 
         // Fetch updated poll data with filters
         fetch(`/results/${pollId}?${new URLSearchParams(demographicFilters)}`, {
@@ -108,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 // Hide loading message
                 hideLoadingMessage();
+                console.log("hideLoadingMessage called");
 
                 console.log("Fetched data:", data);
                 if (data.pollData) {
@@ -125,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 // Hide loading message
                 hideLoadingMessage();
+                console.log("hideLoadingMessage called");
 
                 console.error('Error fetching poll data:', error);
                 showError(`Error: ${error.message}`);
@@ -173,17 +176,17 @@ function showLoadingMessage() {
             }, 200);
         }
     } else {
-        console.warn("Loading message element not found");
+        console.error("Loading message element not found");
     }
 }
 
 function hideLoadingMessage() {
     const loadingMessage = document.getElementById('loading-message');
     if (loadingMessage) {
-        loadingMessage.classList.remove('d-block');
         loadingMessage.classList.add('d-none');
+        loadingMessage.classList.remove('d-block');
     } else {
-        console.warn("Loading message element not found");
+        console.error("Loading message element not found");
     }
 }
 
