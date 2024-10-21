@@ -13,7 +13,7 @@ h1, h2, h3, h4, h5, h6,
 .card-subtitle,
 .navbar-brand,
 .nav-link {
-    color: #20272F !important;
+    color: #e72264 !important;
 }
 
 .text-muted {
@@ -21,7 +21,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .navbar {
-    background-color: #D2B48C !important;
+    background-color: #dacebe !important;
 }
 
 /* New CSS rule for Wiyo logo */
