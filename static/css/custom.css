@@ -24,6 +24,12 @@ h1, h2, h3, h4, h5, h6,
     background-color: #D2B48C !important;
 }
 
+/* New CSS rule for Wiyo logo */
+.wiyo-logo {
+    height: 100px;
+    width: auto;
+}
+
 /* Rest of the existing CSS rules... */
 
 /* Keep the existing rules unchanged */
