@@ -267,7 +267,10 @@ def forum_details(forum_id):
             user = User.query.get(session['user_id'])
             new_comment = Comment(content=content, author=user, forum_post=forum)
             db.session.add(new_comment)
-            forum.comment_count += 1
+            if forum.comment_count is None:
+                forum.comment_count = 1
+            else:
+                forum.comment_count += 1
             db.session.commit()
             flash('Your comment has been added!', 'success')
         return redirect(url_for('forum_details', forum_id=forum_id))
@@ -283,7 +286,8 @@ def delete_comment(comment_id):
         return redirect(url_for('forum_details', forum_id=comment.forum_post_id))
     
     forum = comment.forum_post
-    forum.comment_count -= 1
+    if forum.comment_count is not None:
+        forum.comment_count = max(0, forum.comment_count - 1)
     db.session.delete(comment)
     db.session.commit()
     flash('Your comment has been deleted.', 'success')
