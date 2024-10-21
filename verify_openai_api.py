@@ -1,8 +1,7 @@
 import os
 import time
 import random
-import openai
-from openai import OpenAIError, RateLimitError, AuthenticationError
+from openai import OpenAI, OpenAIError, RateLimitError, AuthenticationError
 
 def verify_openai_api(max_retries=5, base_delay=1):
     print("Starting verification process...")
@@ -13,7 +12,7 @@ def verify_openai_api(max_retries=5, base_delay=1):
         return False
 
     print("OPENAI_API_KEY is set in the environment variables.")
-    openai.api_key = api_key
+    client = OpenAI(api_key=api_key)
 
     models_to_try = ["gpt-3.5-turbo", "text-davinci-003"]
 
@@ -23,22 +22,22 @@ def verify_openai_api(max_retries=5, base_delay=1):
                 print(f"Attempting to use model: {model}")
                 print(f"Attempt {attempt + 1} of {max_retries}")
 
-                # For chat-based models, use ChatCompletion
+                # For chat-based models, use client.chat.completions.create
                 if model.startswith("gpt-3.5-turbo"):
-                    response = openai.ChatCompletion.create(
+                    response = client.chat.completions.create(
                         model=model,
                         messages=[{"role": "user", "content": "Hello, are you working?"}],
                         max_tokens=50
                     )
-                    print(f"API test successful with model {model}. Response:", response['choices'][0]['message']['content'].strip())
+                    print(f"API test successful with model {model}. Response:", response.choices[0].message['content'].strip())
                 else:
                     # For regular completions (like text-davinci-003)
-                    response = openai.Completion.create(
+                    response = client.completions.create(
                         model=model,
                         prompt="Hello, are you working?",
                         max_tokens=50
                     )
-                    print(f"API test successful with model {model}. Response:", response['choices'][0]['text'].strip())
+                    print(f"API test successful with model {model}. Response:", response.choices[0].text.strip())
 
                 return True
             except AuthenticationError as e:
