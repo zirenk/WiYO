@@ -2,7 +2,7 @@ import os
 import time
 import random
 import openai
-from openai.error import OpenAIError, RateLimitError, AuthenticationError
+from openai import OpenAIError, RateLimitError, AuthenticationError
 
 def verify_openai_api(max_retries=5, base_delay=1):
     print("Starting verification process...")
