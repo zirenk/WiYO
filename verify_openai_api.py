@@ -2,7 +2,7 @@ import os
 import time
 import random
 import openai
-from openai import OpenAIError, RateLimitError, AuthenticationError
+from openai.error import OpenAIError, RateLimitError, AuthenticationError
 
 def verify_openai_api(max_retries=5, base_delay=1):
     print("Starting verification process...")
@@ -23,21 +23,22 @@ def verify_openai_api(max_retries=5, base_delay=1):
                 print(f"Attempting to use model: {model}")
                 print(f"Attempt {attempt + 1} of {max_retries}")
 
-                # For chat-based models, use prompt instead of messages
+                # For chat-based models, use ChatCompletion
                 if model.startswith("gpt-3.5-turbo"):
-                    response = openai.completions.create(
+                    response = openai.ChatCompletion.create(
                         model=model,
-                        prompt="Hello, are you working?",
+                        messages=[{"role": "user", "content": "Hello, are you working?"}],
                         max_tokens=50
                     )
-                    print(f"API test successful with model {model}. Response:", response.choices[0].text.strip())
+                    print(f"API test successful with model {model}. Response:", response['choices'][0]['message']['content'].strip())
                 else:
+                    # For regular completions (like text-davinci-003)
                     response = openai.Completion.create(
                         model=model,
                         prompt="Hello, are you working?",
                         max_tokens=50
                     )
-                    print(f"API test successful with model {model}. Response:", response.choices[0].text.strip())
+                    print(f"API test successful with model {model}. Response:", response['choices'][0]['text'].strip())
 
                 return True
             except AuthenticationError as e:
