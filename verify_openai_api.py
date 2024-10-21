@@ -1,8 +1,10 @@
+#This is a test comment
+#attemtping to save file
 import os
 import time
 import random
 import openai
-from openai.error import OpenAIError, RateLimitError, AuthenticationError
+from openai import OpenAIError, RateLimitError, AuthenticationError
 
 
 def verify_openai_api(max_retries=5, base_delay=1):
@@ -61,7 +63,7 @@ def verify_openai_api(max_retries=5, base_delay=1):
                     f"Rate limit hit. Retrying in {delay:.2f} seconds. Details: {str(e)}"
                 )
                 time.sleep(delay)
-            except APIError as e:
+            except OpenAIError as e:
                 if "does not have access to model" in str(e):
                     print(
                         f"API Error: No access to model {model}. Trying next model."
@@ -84,6 +86,5 @@ def verify_openai_api(max_retries=5, base_delay=1):
 
 
 if __name__ == "__main__":
-    print("Running verify_openai_api.py")  # This should print first
+    print("Running verify_openai_api.py")
     verify_openai_api()
-    
