@@ -7,7 +7,7 @@ from utils import generate_login_code, generate_username
 from functools import wraps
 import traceback
 from openai import OpenAI
-from openai import APIError, RateLimitError
+from openai import APIError, RateLimitError, AuthenticationError
 import time
 import random
 from queue import Queue
@@ -110,39 +110,68 @@ def make_openai_request(user_id, user_message, max_retries=5, base_delay=1):
     user = User.query.get(user_id)
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     
-    for attempt in range(max_retries):
-        try:
-            user_context = f"User demographics: {user.demographics}"
+    models_to_try = ["gpt-3.5-turbo", "gpt-3.5-turbo-instruct", "text-davinci-002", "davinci"]
+    
+    for model in models_to_try:
+        for attempt in range(max_retries):
+            try:
+                user_context = f"User demographics: {user.demographics}"
+                
+                app.logger.info(f"Sending request to OpenAI API for user {user_id} using model {model}")
+                if model.startswith("gpt-3.5-turbo"):
+                    response = client.chat.completions.create(
+                        model=model,
+                        messages=[
+                            {"role": "system", "content": f"You are WiYO AI, a helpful assistant for the anonymous polling application. {user_context}"},
+                            {"role": "user", "content": user_message}
+                        ],
+                        max_tokens=150
+                    )
+                    ai_message = response.choices[0].message.content
+                else:
+                    response = client.completions.create(
+                        model=model,
+                        prompt=f"WiYO AI is a helpful assistant for the anonymous polling application. {user_context}\nUser: {user_message}\nWiYO AI:",
+                        max_tokens=150
+                    )
+                    ai_message = response.choices[0].text.strip()
+                
+                app.logger.info(f"Received response from OpenAI API for user {user_id}")
+                return ai_message
             
-            app.logger.info(f"Sending request to OpenAI API for user {user_id}")
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": f"You are WiYO AI, a helpful assistant for the anonymous polling application. {user_context}"},
-                    {"role": "user", "content": user_message}
-                ]
-            )
-            
-            ai_message = response.choices[0].message.content
-            app.logger.info(f"Received response from OpenAI API for user {user_id}")
-            return ai_message
-        
-        except RateLimitError:
-            if attempt == max_retries - 1:
-                app.logger.error(f"Rate limit exceeded for user {user_id} after {max_retries} attempts")
+            except AuthenticationError as e:
+                app.logger.error(f"Authentication error for user {user_id}: {str(e)}")
                 raise
-            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-            app.logger.warning(f"Rate limit hit for user {user_id}. Retrying in {delay} seconds")
-            time.sleep(delay)
-        
-        except APIError as e:
-            app.logger.error(f"OpenAI API error for user {user_id}: {str(e)}")
-            raise
-        
-        except Exception as e:
-            app.logger.error(f"Unexpected error in make_openai_request for user {user_id}: {str(e)}")
-            app.logger.error(traceback.format_exc())
-            raise
+            
+            except RateLimitError:
+                if attempt == max_retries - 1:
+                    app.logger.error(f"Rate limit exceeded for user {user_id} after {max_retries} attempts")
+                    raise
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                app.logger.warning(f"Rate limit hit for user {user_id}. Retrying in {delay:.2f} seconds")
+                time.sleep(delay)
+            
+            except APIError as e:
+                if "does not have access to model" in str(e):
+                    app.logger.warning(f"No access to model {model} for user {user_id}. Trying next model.")
+                    break
+                if attempt == max_retries - 1:
+                    app.logger.error(f"API error for user {user_id}: {str(e)}")
+                    raise
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                app.logger.warning(f"API error for user {user_id}. Retrying in {delay:.2f} seconds")
+                time.sleep(delay)
+            
+            except Exception as e:
+                app.logger.error(f"Unexpected error in make_openai_request for user {user_id}: {str(e)}")
+                app.logger.error(traceback.format_exc())
+                if attempt == max_retries - 1:
+                    raise
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                app.logger.warning(f"Unexpected error for user {user_id}. Retrying in {delay:.2f} seconds")
+                time.sleep(delay)
+    
+    raise Exception("All models attempted. Unable to get a response from OpenAI API.")
 
 @app.route('/chat', methods=['GET', 'POST'])
 @login_required
@@ -150,7 +179,7 @@ def chat():
     user = User.query.get(session['user_id'])
     
     if request.method == 'POST':
-        user_message = request.form['user_message']
+        user_message = request.json['user_message']
         
         try:
             api_request_queue.put((user.id, user_message))
