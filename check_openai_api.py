@@ -13,7 +13,7 @@ def check_openai_api():
     client = OpenAI(api_key=api_key)
 
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",  # Use "gpt-4" or "gpt-3.5-turbo-16k"
         messages=[{"role": "user", "content": "Hello, are you working?"}],
         max_tokens=10
     )
