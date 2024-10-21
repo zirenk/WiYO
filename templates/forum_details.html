@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">{{ forum.title }}</h1>
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Posted by {{ forum.author.username }} on {{ forum.date_posted.strftime('%Y-%m-%d %H:%M') }}</h6>
+            <p class="card-text">{{ forum.description }}</p>
+            <hr>
+            <p class="card-text">{{ forum.content }}</p>
+        </div>
+    </div>
+    <div class="mt-3">
+        <h3>Comments ({{ forum.comment_count }})</h3>
+        <!-- Add comment section here when implementing comments feature -->
+    </div>
+    <a href="{{ url_for('forum') }}" class="btn btn-secondary mt-3">Back to Forums</a>
+</div>
+{% endblock %}

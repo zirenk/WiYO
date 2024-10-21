@@ -239,25 +239,26 @@ def reset_responses():
 @app.route('/forum')
 @login_required
 def forum():
-    posts = ForumPost.query.order_by(ForumPost.date_posted.desc()).all()
-    return render_template('forum.html', posts=posts)
+    forums = ForumPost.query.order_by(ForumPost.date_posted.desc()).all()
+    return render_template('forum.html', forums=forums)
 
 @app.route('/forum/new', methods=['GET', 'POST'])
 @login_required
-def new_post():
+def create_forum():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
+        description = request.form['description']
         user = User.query.get(session['user_id'])
-        new_post = ForumPost(title=title, content=content, author=user)
-        db.session.add(new_post)
+        new_forum = ForumPost(title=title, content=content, description=description, author=user)
+        db.session.add(new_forum)
         db.session.commit()
-        flash('Your post has been created!', 'success')
+        flash('Your forum has been created!', 'success')
         return redirect(url_for('forum'))
-    return render_template('create_post.html')
+    return render_template('create_forum.html')
 
-@app.route('/forum/post/<int:post_id>')
+@app.route('/forum/<int:forum_id>')
 @login_required
-def post(post_id):
-    post = ForumPost.query.get_or_404(post_id)
-    return render_template('post.html', post=post)
+def forum_details(forum_id):
+    forum = ForumPost.query.get_or_404(forum_id)
+    return render_template('forum_details.html', forum=forum)

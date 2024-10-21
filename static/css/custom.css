@@ -1,5 +1,8 @@
 /* Custom styles to complement Bootstrap */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
 body {
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--bs-light);
 }
 
@@ -114,4 +117,36 @@ body {
 .navbar-brand {
     display: flex;
     align-items: center;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .table {
+        font-size: 0.9rem;
+    }
+}
+
+/* Turkish character support */
+@font-face {
+    font-family: 'Roboto Turkish';
+    src: url('https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2') format('woff2');
+    unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+body {
+    font-family: 'Roboto Turkish', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }

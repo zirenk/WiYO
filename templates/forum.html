@@ -2,18 +2,30 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mb-4">Forum</h1>
-    <a href="{{ url_for('new_post') }}" class="btn btn-primary mb-3">Create New Post</a>
+    <h1 class="mb-4">Forums</h1>
+    <a href="{{ url_for('create_forum') }}" class="btn btn-primary mb-3">Create a New Forum</a>
     
-    {% for post in posts %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5 class="card-title">{{ post.title }}</h5>
-            <h6 class="card-subtitle mb-2 text-muted">Posted by {{ post.author.username }} on {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</h6>
-            <p class="card-text">{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
-            <a href="{{ url_for('post', post_id=post.id) }}" class="btn btn-secondary">Read More</a>
-        </div>
-    </div>
-    {% endfor %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Forum ID</th>
+                <th>Forum Topic</th>
+                <th>Publish Date</th>
+                <th>Number of Comments</th>
+                <th>Creator ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for forum in forums %}
+            <tr>
+                <td>{{ forum.id }}</td>
+                <td><a href="{{ url_for('forum_details', forum_id=forum.id) }}">{{ forum.title }}</a></td>
+                <td>{{ forum.date_posted.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ forum.comment_count }}</td>
+                <td>{{ forum.author.username }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}
