@@ -10,6 +10,7 @@ class User(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     demographics = db.Column(JSONB)
     forum_posts = db.relationship('ForumPost', backref='author', lazy='dynamic')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
 class Poll(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,7 +32,15 @@ class ForumPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    description = db.Column(db.String(200))  # Added this line
+    description = db.Column(db.String(200))
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     comment_count = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comments = db.relationship('Comment', backref='forum_post', lazy='dynamic')
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    forum_post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id'), nullable=False)

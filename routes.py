@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from models import db, User, Poll, Response, ForumPost
+from models import db, User, Poll, Response, ForumPost, Comment
 from sqlalchemy import and_, cast, Integer, desc
 from app import app
 from utils import generate_login_code, generate_username
@@ -257,8 +257,34 @@ def create_forum():
         return redirect(url_for('forum'))
     return render_template('create_forum.html')
 
-@app.route('/forum/<int:forum_id>')
+@app.route('/forum/<int:forum_id>', methods=['GET', 'POST'])
 @login_required
 def forum_details(forum_id):
     forum = ForumPost.query.get_or_404(forum_id)
-    return render_template('forum_details.html', forum=forum)
+    if request.method == 'POST':
+        content = request.form.get('content')
+        if content:
+            user = User.query.get(session['user_id'])
+            new_comment = Comment(content=content, author=user, forum_post=forum)
+            db.session.add(new_comment)
+            forum.comment_count += 1
+            db.session.commit()
+            flash('Your comment has been added!', 'success')
+        return redirect(url_for('forum_details', forum_id=forum_id))
+    comments = Comment.query.filter_by(forum_post_id=forum_id).order_by(Comment.date_posted.desc()).all()
+    return render_template('forum_details.html', forum=forum, comments=comments)
+
+@app.route('/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if comment.author.id != session['user_id']:
+        flash('You are not authorized to delete this comment.', 'danger')
+        return redirect(url_for('forum_details', forum_id=comment.forum_post_id))
+    
+    forum = comment.forum_post
+    forum.comment_count -= 1
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Your comment has been deleted.', 'success')
+    return redirect(url_for('forum_details', forum_id=forum.id))
