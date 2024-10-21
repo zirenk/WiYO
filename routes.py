@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from models import db, User, Poll, Response
-from sqlalchemy import and_, cast, Integer
+from models import db, User, Poll, Response, ForumPost
+from sqlalchemy import and_, cast, Integer, desc
 from app import app
 from utils import generate_login_code, generate_username
 from functools import wraps
@@ -13,13 +13,9 @@ import random
 from queue import Queue
 import threading
 
-# Create a queue for handling API requests
 api_request_queue = Queue()
-
-# Dictionary to store responses
 user_responses = {}
 
-# Function to process API requests from the queue
 def process_api_requests():
     while True:
         user_id, user_message = api_request_queue.get()
@@ -35,7 +31,6 @@ def process_api_requests():
         finally:
             api_request_queue.task_done()
 
-# Start the background thread for processing API requests
 api_thread = threading.Thread(target=process_api_requests, daemon=True)
 api_thread.start()
 
@@ -158,7 +153,6 @@ def chat():
         user_message = request.form['user_message']
         
         try:
-            # Add the request to the queue
             api_request_queue.put((user.id, user_message))
             app.logger.info(f"Request queued for user {user.id}")
             
@@ -241,3 +235,29 @@ def reset_responses():
     db.session.commit()
     flash('Your responses have been reset. You can now answer the polls again.', 'success')
     return redirect(url_for('polls'))
+
+@app.route('/forum')
+@login_required
+def forum():
+    posts = ForumPost.query.order_by(ForumPost.date_posted.desc()).all()
+    return render_template('forum.html', posts=posts)
+
+@app.route('/forum/new', methods=['GET', 'POST'])
+@login_required
+def new_post():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        user = User.query.get(session['user_id'])
+        new_post = ForumPost(title=title, content=content, author=user)
+        db.session.add(new_post)
+        db.session.commit()
+        flash('Your post has been created!', 'success')
+        return redirect(url_for('forum'))
+    return render_template('create_post.html')
+
+@app.route('/forum/post/<int:post_id>')
+@login_required
+def post(post_id):
+    post = ForumPost.query.get_or_404(post_id)
+    return render_template('post.html', post=post)

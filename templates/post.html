@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">{{ post.title }}</h1>
+    <div class="card">
+        <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Posted by {{ post.author.username }} on {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</h6>
+            <p class="card-text">{{ post.content }}</p>
+        </div>
+    </div>
+    <a href="{{ url_for('forum') }}" class="btn btn-secondary mt-3">Back to Forum</a>
+</div>
+{% endblock %}

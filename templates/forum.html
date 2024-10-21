@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Forum</h1>
+    <a href="{{ url_for('new_post') }}" class="btn btn-primary mb-3">Create New Post</a>
+    
+    {% for post in posts %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Posted by {{ post.author.username }} on {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</h6>
+            <p class="card-text">{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
+            <a href="{{ url_for('post', post_id=post.id) }}" class="btn btn-secondary">Read More</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
