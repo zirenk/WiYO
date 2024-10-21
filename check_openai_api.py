@@ -13,12 +13,13 @@ def check_openai_api():
     client = OpenAI(api_key=api_key)
 
     response = client.chat.completions.create(
-        model="gpt-4",  # Use "gpt-4" or "gpt-3.5-turbo-16k"
+        model="gpt-3.5-turbo",  # Use "gpt-3.5-turbo" or "gpt-3.5-turbo-16k" here
         messages=[{"role": "user", "content": "Hello, are you working?"}],
-        max_tokens=10
+        max_tokens=50
     )
 
-    print("API test successful. Response:", response.choices[0].message['content'])
+    # Correct way to access the message content:
+    print("API test successful. Response:", response.choices[0].message.content)
     return True
 
 if __name__ == "__main__":

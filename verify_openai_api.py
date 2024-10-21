@@ -14,7 +14,7 @@ def verify_openai_api(max_retries=5, base_delay=1):
     print("OPENAI_API_KEY is set in the environment variables.")
     client = OpenAI(api_key=api_key)
 
-    models_to_try = ["gpt-4", "gpt-3.5-turbo-16k"]  # Use supported models
+    models_to_try = ["gpt-4", "gpt-3.5-turbo-16k"]
 
     for model in models_to_try:
         for attempt in range(max_retries):
@@ -28,7 +28,7 @@ def verify_openai_api(max_retries=5, base_delay=1):
                     messages=[{"role": "user", "content": "Hello, are you working?"}],
                     max_tokens=50
                 )
-                print(f"API test successful with model {model}. Response:", response.choices[0].message['content'].strip())
+                print(f"API test successful with model {model}. Response:", response.choices[0].message.content.strip())
 
                 return True
             except AuthenticationError as e:
