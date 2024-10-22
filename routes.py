@@ -13,13 +13,21 @@ def login():
     if request.method == 'POST':
         login_code = request.form.get('login_code')
         user = User.query.filter_by(login_code=login_code).first()
-        if user:
-            session['user_id'] = user.id
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if user:
+                session['user_id'] = user.id
+                return jsonify({'success': True, 'redirect': url_for('dashboard')})
+            else:
+                return jsonify({'success': False, 'error': 'Invalid login code. Please try again.'})
         else:
-            flash('Invalid login code. Please try again.', 'danger')
-            return render_template('login.html')
+            if user:
+                session['user_id'] = user.id
+                flash('Login successful!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid login code. Please try again.', 'danger')
+    
     return render_template('login.html')
 
 def login_required(f):
@@ -57,7 +65,6 @@ def submit_poll():
 
         flash('Your response has been recorded. View the results below.', 'success')
 
-        # Redirect to results page after submitting the poll
         return redirect(url_for('results', poll_id=poll_id))
     except Exception as e:
         app.logger.error(f"Error in submit_poll: {str(e)}")
@@ -72,12 +79,10 @@ def results(poll_id):
     results = get_poll_results(poll_id)
 
     if request.method == 'POST':
-        # Handle demographic filters
         age = request.form.get('age')
         gender = request.form.get('gender')
         education = request.form.get('education')
         
-        # Apply filters to results
         filtered_results = apply_demographic_filters(results, age, gender, education)
         
         return jsonify({
@@ -102,13 +107,10 @@ def get_poll_results(poll_id):
     return results
 
 def apply_demographic_filters(results, age, gender, education):
-    # Implement the logic to filter results based on demographics
-    # This is a placeholder function, you'll need to implement the actual filtering logic
     return results
 
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
 def create_wiyo_account():
-    # Implement the logic for creating a WiYO account
     pass
 
 @app.route('/logout')

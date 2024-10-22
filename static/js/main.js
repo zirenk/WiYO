@@ -17,20 +17,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: new URLSearchParams({
                         'login_code': loginCode,
                         'remember_me': document.getElementById('remember-me').checked
                     })
                 });
+
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
+
                 const data = await response.json();
                 if (data.success) {
                     window.location.href = data.redirect;
                 } else {
-                    showError(data.error);
+                    showError(data.error || 'An error occurred during login.');
                 }
             } catch (error) {
                 console.error('Error:', error);
