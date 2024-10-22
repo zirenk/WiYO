@@ -2,11 +2,11 @@
 
 {% block content %}
 <h1>Demographics</h1>
-<form method="POST" action="{{ url_for('demographics') }}">
+<form id="demographics-form" method="POST" action="{{ url_for('demographics') }}">
     <div class="mb-3">
-        {% if not edit_mode %}
-        <button type="submit" name="edit_demographics" class="btn btn-primary">Edit Demographics</button>
-        {% endif %}
+        <button type="button" id="edit-toggle" class="btn btn-primary" onclick="toggleEditMode()">
+            {% if edit_mode %}Cancel Edit{% else %}Edit Demographics{% endif %}
+        </button>
         <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
     <div class="mb-3">
@@ -23,7 +23,6 @@
             <option value="prefer_not_to_say" {% if user.demographics and user.demographics.gender == 'prefer_not_to_say' %}selected{% endif %}>Prefer not to say</option>
         </select>
     </div>
-    <!-- Repeat the pattern for other demographic fields -->
     <div class="mb-3">
         <label for="education" class="form-label">Highest Level of Education</label>
         <select class="form-select" id="education" name="education" {% if not edit_mode %}disabled{% endif %} required>
@@ -35,8 +34,37 @@
         </select>
     </div>
     <!-- Add the remaining demographic fields here -->
-    {% if edit_mode %}
-    <button type="submit" class="btn btn-primary">Submit Demographics</button>
-    {% endif %}
+    <button type="submit" id="submit-button" class="btn btn-primary" {% if not edit_mode %}style="display: none;"{% endif %}>Submit Demographics</button>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let editMode = {{ edit_mode|tojson }};
+
+function toggleEditMode() {
+    editMode = !editMode;
+    const form = document.getElementById('demographics-form');
+    const editToggle = document.getElementById('edit-toggle');
+    const submitButton = document.getElementById('submit-button');
+
+    form.querySelectorAll('input, select').forEach(element => {
+        if (element.id !== 'edit-toggle') {
+            element.disabled = !editMode;
+            if (element.tagName === 'INPUT') {
+                element.readOnly = !editMode;
+            }
+        }
+    });
+
+    editToggle.textContent = editMode ? 'Cancel Edit' : 'Edit Demographics';
+    submitButton.style.display = editMode ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (editMode) {
+        toggleEditMode();
+    }
+});
+</script>
 {% endblock %}
