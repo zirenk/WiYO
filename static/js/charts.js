@@ -15,8 +15,8 @@ function createChart(pollData, demographicFilters) {
     }
     
     // Prepare data for the chart
-    const labels = Object.keys(pollData);
-    const data = Object.values(pollData);
+    const labels = Object.keys(pollData.results);
+    const data = Object.values(pollData.results);
     
     console.log("Chart Labels:", labels);
     console.log("Chart Data:", data);
@@ -43,6 +43,12 @@ function createChart(pollData, demographicFilters) {
                             display: true,
                             text: 'Number of Responses'
                         }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: pollData.question
                     }
                 }
             }
@@ -110,12 +116,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideLoadingMessage();
 
                 console.log("Fetched data:", data);
-                if (data.pollData) {
+                if (data.poll_data) {
                     showDebugMessage('Data fetched successfully');
                     setTimeout(() => {
                         hideDebugMessage();
                     }, 3000); // Hide after 3 seconds
-                    createChart(data.pollData, demographicFilters);
+                    createChart(data.poll_data, demographicFilters);
                 } else if (data.error) {
                     throw new Error(data.error);
                 } else {

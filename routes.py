@@ -249,21 +249,16 @@ def submit_poll():
 
     flash('Your response has been recorded.', 'success')
     
-    # Fetch all responses for this poll
     responses = Response.query.filter_by(poll_id=poll_id).all()
     
-    # Initialize results with all choices from the poll, setting count to 0
     results = {choice: 0 for choice in poll.choices}
 
-    # Count responses
     for response in responses:
         try:
             results[response.choice] += 1
         except KeyError:
-            # If a response has an invalid choice, log it but don't crash
             app.logger.error(f"Invalid choice '{response.choice}' found in response {response.id} for poll {poll_id}")
 
-    # Prepare poll_data for the template
     poll_data = {
         'question': poll.question,
         'results': results
@@ -275,13 +270,40 @@ def submit_poll():
 @login_required
 def results(poll_id):
     poll = Poll.query.get_or_404(poll_id)
-    responses = Response.query.filter_by(poll_id=poll_id).all()
     
+    age_filter = request.args.get('age', 'All')
+    gender_filter = request.args.get('gender', 'All')
+    education_filter = request.args.get('education', 'All')
+
+    responses_query = Response.query.filter_by(poll_id=poll_id)
+
+    if age_filter != 'All':
+        age_range = age_filter.split('-')
+        responses_query = responses_query.join(User).filter(
+            cast(User.demographics['age'].astext, Integer).between(int(age_range[0]), int(age_range[1]))
+        )
+
+    if gender_filter != 'All':
+        responses_query = responses_query.join(User).filter(User.demographics['gender'].astext == gender_filter)
+
+    if education_filter != 'All':
+        responses_query = responses_query.join(User).filter(User.demographics['education'].astext == education_filter)
+
+    responses = responses_query.all()
+
     results = {choice: 0 for choice in poll.choices}
     for response in responses:
         results[response.choice] += 1
 
-    return render_template('results.html', poll=poll, results=results)
+    poll_data = {
+        'question': poll.question,
+        'results': results
+    }
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'poll_data': poll_data})
+    else:
+        return render_template('results.html', poll=poll, results=results, poll_data=poll_data)
 
 @app.route('/reset_responses')
 @login_required
