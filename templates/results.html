@@ -4,6 +4,12 @@
 <h1>Poll Results</h1>
 <h2>Poll #{{ poll.number }}: {{ poll.question }}</h2>
 
+{% if just_submitted %}
+<div class="alert alert-success" role="alert">
+    Your response has been successfully submitted. Thank you for participating!
+</div>
+{% endif %}
+
 <div class="demographic-filters">
     <h3>Filter by Demographics</h3>
     <div class="row">

@@ -1,3 +1,50 @@
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from models import db, User, Poll, Response, ForumPost, Comment
+from app import app
+from functools import wraps
+import traceback
+
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        login_code = request.form.get('login_code')
+        user = User.query.filter_by(login_code=login_code).first()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            if user:
+                session['user_id'] = user.id
+                return jsonify({'success': True, 'redirect': url_for('dashboard')})
+            else:
+                return jsonify({'success': False, 'error': 'Invalid login code. Please try again.'})
+        else:
+            if user:
+                session['user_id'] = user.id
+                flash('Login successful!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Invalid login code. Please try again.', 'danger')
+    
+    return render_template('login.html')
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    user = User.query.get(session['user_id'])
+    return render_template('dashboard.html', username=user.username)
+
 @app.route('/submit_poll', methods=['POST'])
 @login_required
 def submit_poll():
@@ -23,7 +70,7 @@ def submit_poll():
 
         flash('Your response has been recorded. View the results below.', 'success')
 
-        return redirect(url_for('results', poll_id=poll_id))
+        return redirect(url_for('results', poll_id=poll_id, just_submitted=True))
     except Exception as e:
         app.logger.error(f"Error in submit_poll: {str(e)}")
         app.logger.error(traceback.format_exc())
@@ -35,13 +82,15 @@ def submit_poll():
 def results(poll_id):
     poll = Poll.query.get_or_404(poll_id)
     results = get_poll_results(poll_id)
+    just_submitted = request.args.get('just_submitted', type=bool, default=False)
 
     return render_template('results.html',
                            poll=poll,
                            poll_data={
                                'question': poll.question,
                                'results': results
-                           })
+                           },
+                           just_submitted=just_submitted)
 
 def get_poll_results(poll_id):
     poll = Poll.query.get(poll_id)
