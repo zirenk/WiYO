@@ -11,5 +11,4 @@ dependencies = [
     "flask-migrate>=4.0.7",
     "openai>=1.52.0",
     "sqlalchemy>=2.0.36",
-    "flask-login>=0.6.3",
 ]
