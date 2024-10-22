@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from models import db, User, Poll, Response, ForumPost, Comment
 from app import app
@@ -91,7 +90,7 @@ def submit_poll():
 
         flash('Your response has been recorded. View the results below.', 'success')
 
-        # Redirect to results page immediately after submission
+        # Redirect to results page immediately after submission with just_submitted parameter
         return redirect(url_for('results', poll_id=poll_id, just_submitted=True))
     except Exception as e:
         app.logger.error(f"Error in submit_poll: {str(e)}")
