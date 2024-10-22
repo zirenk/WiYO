@@ -116,14 +116,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideLoadingMessage();
 
                 console.log("Fetched data:", data);
-                if (data.poll_data) {
+                if (data.no_data) {
+                    showError(data.message);
+                    if (chart) {
+                        chart.destroy();
+                        chart = null;
+                    }
+                } else if (data.poll_data) {
                     showDebugMessage('Data fetched successfully');
                     setTimeout(() => {
                         hideDebugMessage();
                     }, 3000); // Hide after 3 seconds
                     createChart(data.poll_data, demographicFilters);
-                } else if (data.error) {
-                    throw new Error(data.error);
                 } else {
                     throw new Error("Unexpected response format");
                 }

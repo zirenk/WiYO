@@ -291,6 +291,14 @@ def results(poll_id):
 
     responses = responses_query.all()
 
+    if not responses:
+        no_data_message = 'There are no responses based on your filter. Please edit some filters and try again.'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'no_data': True, 'message': no_data_message})
+        else:
+            flash(no_data_message, 'info')
+            return render_template('results.html', poll=poll, no_data=True)
+
     results = {choice: 0 for choice in poll.choices}
     for response in responses:
         results[response.choice] += 1
