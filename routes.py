@@ -249,22 +249,7 @@ def submit_poll():
 
     flash('Your response has been recorded.', 'success')
     
-    responses = Response.query.filter_by(poll_id=poll_id).all()
-    
-    results = {choice: 0 for choice in poll.choices}
-
-    for response in responses:
-        try:
-            results[response.choice] += 1
-        except KeyError:
-            app.logger.error(f"Invalid choice '{response.choice}' found in response {response.id} for poll {poll_id}")
-
-    poll_data = {
-        'question': poll.question,
-        'results': results
-    }
-
-    return render_template('results.html', poll=poll, results=results, poll_data=poll_data)
+    return redirect(url_for('results', poll_id=poll_id))
 
 @app.route('/results/<int:poll_id>')
 @login_required
