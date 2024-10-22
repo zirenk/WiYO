@@ -4,6 +4,7 @@ from app import app
 from functools import wraps
 import traceback
 from utils import generate_login_code, generate_username
+from sqlalchemy import func
 
 @app.route('/')
 def index():
@@ -90,7 +91,6 @@ def submit_poll():
 
         flash('Your response has been recorded. View the results below.', 'success')
 
-        # Redirect to results page immediately after submission with just_submitted parameter
         return redirect(url_for('results', poll_id=poll_id, just_submitted=True))
     except Exception as e:
         app.logger.error(f"Error in submit_poll: {str(e)}")
@@ -102,6 +102,25 @@ def submit_poll():
 @login_required
 def results(poll_id):
     poll = Poll.query.get_or_404(poll_id)
+    
+    age_filter = request.args.get('age', 'All')
+    gender_filter = request.args.get('gender', 'All')
+    education_filter = request.args.get('education', 'All')
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            filtered_results = get_filtered_poll_results(poll_id, age_filter, gender_filter, education_filter)
+            return jsonify({
+                'poll_data': {
+                    'question': poll.question,
+                    'results': filtered_results
+                }
+            })
+        except Exception as e:
+            app.logger.error(f"Error in results route: {str(e)}")
+            app.logger.error(traceback.format_exc())
+            return jsonify({'error': str(e)}), 500
+
     results = get_poll_results(poll_id)
     just_submitted = request.args.get('just_submitted', type=bool, default=False)
 
@@ -122,6 +141,35 @@ def get_poll_results(poll_id):
     responses = Response.query.filter_by(poll_id=poll_id).all()
     for response in responses:
         results[response.choice] += 1
+    return results
+
+def get_filtered_poll_results(poll_id, age_filter, gender_filter, education_filter):
+    poll = Poll.query.get(poll_id)
+    if not poll:
+        return {}
+
+    results = {choice: 0 for choice in poll.choices}
+
+    query = db.session.query(Response, User).join(User).filter(Response.poll_id == poll_id)
+
+    if age_filter != 'All':
+        age_range = age_filter.split('-')
+        if len(age_range) == 2:
+            query = query.filter(func.cast(User.demographics['age'].astext, db.Integer).between(int(age_range[0]), int(age_range[1])))
+        elif age_filter == '55+':
+            query = query.filter(func.cast(User.demographics['age'].astext, db.Integer) >= 55)
+
+    if gender_filter != 'All':
+        query = query.filter(User.demographics['gender'].astext == gender_filter)
+
+    if education_filter != 'All':
+        query = query.filter(User.demographics['education'].astext == education_filter)
+
+    responses = query.all()
+
+    for response, user in responses:
+        results[response.choice] += 1
+
     return results
 
 @app.route('/polls')

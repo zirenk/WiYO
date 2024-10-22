@@ -119,12 +119,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideLoadingMessage();
 
                 console.log("Fetched data:", data);
-                if (data.no_data) {
-                    showError(data.message);
-                    if (chart) {
-                        chart.destroy();
-                        chart = null;
-                    }
+                if (data.error) {
+                    throw new Error(data.error);
                 } else if (data.poll_data) {
                     // Hide any existing error messages
                     hideError();
