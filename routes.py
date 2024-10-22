@@ -1,41 +1,36 @@
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from models import db, User, Poll, Response
 from app import app
 from functools import wraps
 import traceback
 
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Process the login form with only the login code
         login_code = request.form.get('login_code')
-
-        # Verify login code
         user = User.query.filter_by(login_code=login_code).first()
         if user:
             session['user_id'] = user.id
             flash('Login successful!', 'success')
-            return redirect(
-                url_for('home'))  # Redirect to home or polls after login
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid login code. Please try again.', 'danger')
             return render_template('login.html')
-
     return render_template('login.html')
 
-
 def login_required(f):
-
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-
     return decorated_function
-
 
 @app.route('/submit_poll', methods=['POST'])
 @login_required
@@ -55,30 +50,36 @@ def submit_poll():
         db.session.add(response)
         db.session.commit()
 
-        flash('Your response has been recorded. View the results below.',
-              'success')
+        flash('Your response has been recorded. View the results below.', 'success')
 
-        # Fetch updated results
-        results = get_poll_results(poll_id)
-
-        return redirect(url_for('results', poll_id=poll_id, results=results))
+        return redirect(url_for('results', poll_id=poll_id))
     except Exception as e:
         app.logger.error(f"Error in submit_poll: {str(e)}")
         app.logger.error(traceback.format_exc())
-        flash(
-            'An error occurred while submitting your response. Please try again.',
-            'error')
+        flash('An error occurred while submitting your response. Please try again.', 'error')
         return redirect(url_for('polls'))
 
-
-@app.route('/results/<int:poll_id>')
+@app.route('/results/<int:poll_id>', methods=['GET', 'POST'])
 @login_required
 def results(poll_id):
     poll = Poll.query.get_or_404(poll_id)
-    results = request.args.get('results')
+    results = get_poll_results(poll_id)
 
-    if not results:
-        results = get_poll_results(poll_id)
+    if request.method == 'POST':
+        # Handle demographic filters
+        age = request.form.get('age')
+        gender = request.form.get('gender')
+        education = request.form.get('education')
+        
+        # Apply filters to results (you'll need to implement this logic)
+        filtered_results = apply_demographic_filters(results, age, gender, education)
+        
+        return jsonify({
+            'poll_data': {
+                'question': poll.question,
+                'results': filtered_results
+            }
+        })
 
     return render_template('results.html',
                            poll=poll,
@@ -87,7 +88,6 @@ def results(poll_id):
                                'results': results
                            })
 
-
 def get_poll_results(poll_id):
     responses = Response.query.filter_by(poll_id=poll_id).all()
     results = {choice: 0 for choice in Poll.query.get(poll_id).choices}
@@ -95,8 +95,16 @@ def get_poll_results(poll_id):
         results[response.choice] += 1
     return results
 
+def apply_demographic_filters(results, age, gender, education):
+    # Implement the logic to filter results based on demographics
+    # This is a placeholder function, you'll need to implement the actual filtering logic
+    return results
 
-# Add the rest of the routes here...
+@app.route('/create_wiyo_account', methods=['GET', 'POST'])
+def create_wiyo_account():
+    # Implement the logic for creating a WiYO account
+    pass
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     app.logger.error(f"Server Error: {str(e)}")
