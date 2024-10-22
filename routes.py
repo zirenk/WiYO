@@ -3,6 +3,7 @@ from models import db, User, Poll, Response, ForumPost, Comment
 from app import app
 from functools import wraps
 import traceback
+from utils import generate_login_code, generate_username
 
 @app.route('/')
 def index():
@@ -29,6 +30,21 @@ def login():
                 flash('Invalid login code. Please try again.', 'danger')
     
     return render_template('login.html')
+
+@app.route('/create_wiyo_account', methods=['GET', 'POST'])
+def create_wiyo_account():
+    if request.method == 'POST':
+        login_code = generate_login_code()
+        username = generate_username()
+        
+        new_user = User(login_code=login_code, username=username)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Your WiYO account has been created successfully!', 'success')
+        return render_template('account_created.html', login_code=login_code, username=username)
+    
+    return render_template('create_wiyo_account.html')
 
 def login_required(f):
     @wraps(f)
@@ -70,6 +86,7 @@ def submit_poll():
 
         flash('Your response has been recorded. View the results below.', 'success')
 
+        # Redirect to results page immediately after submission
         return redirect(url_for('results', poll_id=poll_id, just_submitted=True))
     except Exception as e:
         app.logger.error(f"Error in submit_poll: {str(e)}")
@@ -102,3 +119,23 @@ def get_poll_results(poll_id):
     for response in responses:
         results[response.choice] += 1
     return results
+
+@app.route('/polls')
+@login_required
+def polls():
+    user = User.query.get(session['user_id'])
+    unanswered_polls = Poll.query.filter(
+        ~Poll.responses.any(Response.user_id == user.id)
+    ).order_by(Poll.number).all()
+
+    if not unanswered_polls:
+        return render_template('polls.html', no_polls=True)
+
+    next_poll = unanswered_polls[0]
+    return render_template('polls.html', poll=next_poll)
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
