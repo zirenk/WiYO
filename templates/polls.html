@@ -5,7 +5,6 @@
 {% if no_polls %}
     <div class="alert alert-info">
         <p>You've answered all available polls. Check back later for new polls!</p>
-        <a href="{{ url_for('reset_responses') }}" class="btn btn-primary mt-3">Reset My Responses</a>
     </div>
     <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-3">Return to Dashboard</a>
 {% else %}
