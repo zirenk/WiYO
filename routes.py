@@ -237,19 +237,31 @@ def submit_poll():
     poll_id = request.form['poll_id']
     choice = request.form['choice']
 
+    poll = Poll.query.get_or_404(poll_id)
+
+    if choice not in poll.choices:
+        flash('Invalid choice selected. Please try again.', 'error')
+        return redirect(url_for('polls'))
+
     response = Response(user_id=user.id, poll_id=poll_id, choice=choice)
     db.session.add(response)
     db.session.commit()
 
     flash('Your response has been recorded.', 'success')
     
-    # Instead of redirecting, render the results template
-    poll = Poll.query.get(poll_id)
+    # Fetch all responses for this poll
     responses = Response.query.filter_by(poll_id=poll_id).all()
     
+    # Initialize results with all choices from the poll, setting count to 0
     results = {choice: 0 for choice in poll.choices}
+
+    # Count responses
     for response in responses:
-        results[response.choice] += 1
+        try:
+            results[response.choice] += 1
+        except KeyError:
+            # If a response has an invalid choice, log it but don't crash
+            app.logger.error(f"Invalid choice '{response.choice}' found in response {response.id} for poll {poll_id}")
 
     return render_template('results.html', poll=poll, results=results)
 
