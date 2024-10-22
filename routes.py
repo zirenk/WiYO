@@ -242,7 +242,16 @@ def submit_poll():
     db.session.commit()
 
     flash('Your response has been recorded.', 'success')
-    return redirect(url_for('polls'))
+    
+    # Instead of redirecting, render the results template
+    poll = Poll.query.get(poll_id)
+    responses = Response.query.filter_by(poll_id=poll_id).all()
+    
+    results = {choice: 0 for choice in poll.choices}
+    for response in responses:
+        results[response.choice] += 1
+
+    return render_template('results.html', poll=poll, results=results)
 
 @app.route('/results/<int:poll_id>')
 @login_required
