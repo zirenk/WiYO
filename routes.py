@@ -263,7 +263,13 @@ def submit_poll():
             # If a response has an invalid choice, log it but don't crash
             app.logger.error(f"Invalid choice '{response.choice}' found in response {response.id} for poll {poll_id}")
 
-    return render_template('results.html', poll=poll, results=results)
+    # Prepare poll_data for the template
+    poll_data = {
+        'question': poll.question,
+        'results': results
+    }
+
+    return render_template('results.html', poll=poll, results=results, poll_data=poll_data)
 
 @app.route('/results/<int:poll_id>')
 @login_required
