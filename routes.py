@@ -99,3 +99,8 @@ def get_poll_results(poll_id):
 
 
 # Add the rest of the routes here...
+@app.errorhandler(Exception)
+def handle_exception(e):
+    app.logger.error(f"Server Error: {str(e)}")
+    app.logger.error(traceback.format_exc())
+    return "Internal Server Error", 500
