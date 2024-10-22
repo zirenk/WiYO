@@ -5,8 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy.orm import DeclarativeBase
 
+
 class Base(DeclarativeBase):
     pass
+
 
 db = SQLAlchemy(model_class=Base)
 migrate = Migrate()
@@ -21,13 +23,12 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db.init_app(app)
 migrate.init_app(app, db)
 
+
 @app.context_processor
 def inject_timestamp():
     return dict(timestamp=int(time.time()))
 
+
 with app.app_context():
     import models
     import routes
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
