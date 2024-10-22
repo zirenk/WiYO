@@ -5,26 +5,24 @@ from functools import wraps
 import traceback
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        # Process the login form
-        username = request.form.get('username')
-        login_code = request.form.get('login_code')
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
+        if request.method == 'POST':
+            # Process the login form with only the login code
+            login_code = request.form.get('login_code')
 
-        # Verify user and code
-        user = User.query.filter_by(username=username,
-                                    login_code=login_code).first()
-        if user:
-            session['user_id'] = user.id
-            flash('Login successful!', 'success')
-            return redirect(
-                url_for('home'))  # Redirect to home or polls after login
-        else:
-            flash('Invalid login credentials. Please try again.', 'danger')
-            return render_template('login.html')
+            # Verify login code
+            user = User.query.filter_by(login_code=login_code).first()
+            if user:
+                session['user_id'] = user.id
+                flash('Login successful!', 'success')
+                return redirect(url_for('home'))  # Redirect to home or polls after login
+            else:
+                flash('Invalid login code. Please try again.', 'danger')
+                return render_template('login.html')
 
-    return render_template('login.html')
+        return render_template('login.html')
+
 
 
 def login_required(f):
