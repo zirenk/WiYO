@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from models import db, User, Poll, Response
 from app import app
@@ -32,6 +31,12 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    user = User.query.get(session['user_id'])
+    return render_template('dashboard.html', username=user.username)
+
 @app.route('/submit_poll', methods=['POST'])
 @login_required
 def submit_poll():
@@ -52,6 +57,7 @@ def submit_poll():
 
         flash('Your response has been recorded. View the results below.', 'success')
 
+        # Redirect to results page after submitting the poll
         return redirect(url_for('results', poll_id=poll_id))
     except Exception as e:
         app.logger.error(f"Error in submit_poll: {str(e)}")
@@ -71,7 +77,7 @@ def results(poll_id):
         gender = request.form.get('gender')
         education = request.form.get('education')
         
-        # Apply filters to results (you'll need to implement this logic)
+        # Apply filters to results
         filtered_results = apply_demographic_filters(results, age, gender, education)
         
         return jsonify({
@@ -104,6 +110,13 @@ def apply_demographic_filters(results, age, gender, education):
 def create_wiyo_account():
     # Implement the logic for creating a WiYO account
     pass
+
+@app.route('/logout')
+@login_required
+def logout():
+    session.pop('user_id', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
 
 @app.errorhandler(Exception)
 def handle_exception(e):
