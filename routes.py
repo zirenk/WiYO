@@ -233,70 +233,85 @@ def polls():
 @app.route('/submit_poll', methods=['POST'])
 @login_required
 def submit_poll():
-    user = User.query.get(session['user_id'])
-    poll_id = request.form['poll_id']
-    choice = request.form['choice']
+    try:
+        user = User.query.get(session['user_id'])
+        poll_id = request.form['poll_id']
+        choice = request.form['choice']
 
-    poll = Poll.query.get_or_404(poll_id)
+        poll = Poll.query.get_or_404(poll_id)
 
-    if choice not in poll.choices:
-        flash('Invalid choice selected. Please try again.', 'error')
+        if choice not in poll.choices:
+            flash('Invalid choice selected. Please try again.', 'error')
+            return redirect(url_for('polls'))
+
+        response = Response(user_id=user.id, poll_id=poll_id, choice=choice)
+        db.session.add(response)
+        db.session.commit()
+
+        flash('Your response has been recorded.', 'success')
+        
+        return redirect(url_for('results', poll_id=poll_id))
+    except Exception as e:
+        app.logger.error(f"Error in submit_poll: {str(e)}")
+        app.logger.error(traceback.format_exc())
+        flash('An error occurred while submitting your response. Please try again.', 'error')
         return redirect(url_for('polls'))
-
-    response = Response(user_id=user.id, poll_id=poll_id, choice=choice)
-    db.session.add(response)
-    db.session.commit()
-
-    flash('Your response has been recorded.', 'success')
-    
-    return redirect(url_for('results', poll_id=poll_id))
 
 @app.route('/results/<int:poll_id>')
 @login_required
 def results(poll_id):
-    poll = Poll.query.get_or_404(poll_id)
-    
-    age_filter = request.args.get('age', 'All')
-    gender_filter = request.args.get('gender', 'All')
-    education_filter = request.args.get('education', 'All')
+    try:
+        poll = Poll.query.get_or_404(poll_id)
+        
+        age_filter = request.args.get('age', 'All')
+        gender_filter = request.args.get('gender', 'All')
+        education_filter = request.args.get('education', 'All')
 
-    responses_query = Response.query.filter_by(poll_id=poll_id)
+        responses_query = Response.query.filter_by(poll_id=poll_id)
 
-    if age_filter != 'All':
-        age_range = age_filter.split('-')
-        responses_query = responses_query.join(User).filter(
-            cast(User.demographics['age'].astext, Integer).between(int(age_range[0]), int(age_range[1]))
-        )
+        if age_filter != 'All':
+            age_range = age_filter.split('-')
+            responses_query = responses_query.join(User).filter(
+                cast(User.demographics['age'].astext, Integer).between(int(age_range[0]), int(age_range[1]))
+            )
 
-    if gender_filter != 'All':
-        responses_query = responses_query.join(User).filter(User.demographics['gender'].astext == gender_filter)
+        if gender_filter != 'All':
+            responses_query = responses_query.join(User).filter(User.demographics['gender'].astext == gender_filter)
 
-    if education_filter != 'All':
-        responses_query = responses_query.join(User).filter(User.demographics['education'].astext == education_filter)
+        if education_filter != 'All':
+            responses_query = responses_query.join(User).filter(User.demographics['education'].astext == education_filter)
 
-    responses = responses_query.all()
+        responses = responses_query.all()
 
-    if not responses:
-        no_data_message = 'There are no responses based on your filter. Please edit some filters and try again.'
+        if not responses:
+            no_data_message = 'There are no responses based on your filter. Please edit some filters and try again.'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'no_data': True, 'message': no_data_message})
+            else:
+                flash(no_data_message, 'info')
+                return render_template('results.html', poll=poll, no_data=True)
+
+        results = {choice: 0 for choice in poll.choices}
+        for response in responses:
+            if response.choice in results:
+                results[response.choice] += 1
+            else:
+                app.logger.warning(f"Unexpected choice '{response.choice}' for poll {poll_id}")
+
+        poll_data = {
+            'question': poll.question,
+            'results': results
+        }
+
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'no_data': True, 'message': no_data_message})
+            return jsonify({'poll_data': poll_data})
         else:
-            flash(no_data_message, 'info')
-            return render_template('results.html', poll=poll, no_data=True)
-
-    results = {choice: 0 for choice in poll.choices}
-    for response in responses:
-        results[response.choice] += 1
-
-    poll_data = {
-        'question': poll.question,
-        'results': results
-    }
-
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({'poll_data': poll_data})
-    else:
-        return render_template('results.html', poll=poll, results=results, poll_data=poll_data)
+            return render_template('results.html', poll=poll, results=results, poll_data=poll_data)
+    except Exception as e:
+        app.logger.error(f"Error in results: {str(e)}")
+        app.logger.error(traceback.format_exc())
+        flash('An error occurred while fetching the results. Please try again.', 'error')
+        return redirect(url_for('polls'))
 
 @app.route('/reset_responses')
 @login_required
