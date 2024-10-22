@@ -42,7 +42,8 @@
 <script>
 let editMode = {{ edit_mode|tojson }};
 
-function toggleEditMode() {
+function toggleEditMode(e) {
+    if (e) e.preventDefault();
     editMode = !editMode;
     const form = document.getElementById('demographics-form');
     const editToggle = document.getElementById('edit-toggle');
@@ -62,9 +63,47 @@ function toggleEditMode() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('demographics-form');
+    const editToggle = document.getElementById('edit-toggle');
+
     if (editMode) {
         toggleEditMode();
     }
+
+    editToggle.addEventListener('click', toggleEditMode);
+
+    form.addEventListener('submit', function(e) {
+        if (!editMode) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Form submission logic here
+        // You can use AJAX to submit the form without page reload
+        e.preventDefault();
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Demographics updated successfully!');
+                toggleEditMode();
+            } else {
+                alert('Error updating demographics. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    });
 });
 </script>
 {% endblock %}
