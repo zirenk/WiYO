@@ -261,7 +261,12 @@ def delete_comment(comment_id):
 @login_required
 def demographics():
     user = User.query.get(session['user_id'])
+    edit_mode = request.args.get('edit', 'false') == 'true'
+    
     if request.method == 'POST':
+        if 'edit_demographics' in request.form:
+            return redirect(url_for('demographics', edit='true'))
+        
         user.demographics = {
             'age': request.form.get('age'),
             'gender': request.form.get('gender'),
@@ -278,4 +283,4 @@ def demographics():
         flash('Demographics updated successfully!', 'success')
         return redirect(url_for('demographics'))
     
-    return render_template('demographics.html', user=user, edit_mode=request.args.get('edit', 'false') == 'true')
+    return render_template('demographics.html', user=user, edit_mode=edit_mode)
