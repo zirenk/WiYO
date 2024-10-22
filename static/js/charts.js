@@ -96,6 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log("Applying filters:", demographicFilters);
 
+        // Hide any existing error messages
+        hideError();
+
         // Show loading message
         showLoadingMessage();
 
@@ -123,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         chart = null;
                     }
                 } else if (data.poll_data) {
+                    // Hide any existing error messages
+                    hideError();
                     showDebugMessage('Data fetched successfully');
                     setTimeout(() => {
                         hideDebugMessage();
@@ -222,5 +227,13 @@ function showError(message) {
     } else {
         console.warn("Error message element not found");
         alert(message); // Fallback to alert if error message element is not found
+    }
+}
+
+function hideError() {
+    const errorMessageElement = document.getElementById('error-message');
+    if (errorMessageElement) {
+        errorMessageElement.classList.remove('d-block');
+        errorMessageElement.classList.add('d-none');
     }
 }
