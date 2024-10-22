@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from models import db, User, Poll, Response, ForumPost, Comment
 from app import app
@@ -59,7 +60,11 @@ def login_required(f):
 @login_required
 def dashboard():
     user = User.query.get(session['user_id'])
-    return render_template('dashboard.html', username=user.username)
+    if user:
+        return render_template('dashboard.html', username=user.username)
+    else:
+        flash('User not found. Please log in again.', 'danger')
+        return redirect(url_for('login'))
 
 @app.route('/submit_poll', methods=['POST'])
 @login_required
@@ -139,3 +144,68 @@ def logout():
     session.pop('user_id', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
+
+@app.route('/chat')
+@login_required
+def chat():
+    return render_template('chat.html')
+
+@app.route('/forum')
+@login_required
+def forum():
+    forums = ForumPost.query.order_by(ForumPost.date_posted.desc()).all()
+    return render_template('forum.html', forums=forums)
+
+@app.route('/create_forum', methods=['GET', 'POST'])
+@login_required
+def create_forum():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        content = request.form['content']
+        user_id = session['user_id']
+
+        new_forum = ForumPost(title=title, description=description, content=content, user_id=user_id)
+        db.session.add(new_forum)
+        db.session.commit()
+
+        flash('Your forum post has been created!', 'success')
+        return redirect(url_for('forum'))
+
+    return render_template('create_forum.html')
+
+@app.route('/forum/<int:forum_id>', methods=['GET', 'POST'])
+@login_required
+def forum_details(forum_id):
+    forum = ForumPost.query.get_or_404(forum_id)
+    
+    if request.method == 'POST':
+        content = request.form['content']
+        user_id = session['user_id']
+        
+        new_comment = Comment(content=content, user_id=user_id, forum_post_id=forum_id)
+        db.session.add(new_comment)
+        forum.comment_count += 1
+        db.session.commit()
+        
+        flash('Your comment has been added!', 'success')
+        return redirect(url_for('forum_details', forum_id=forum_id))
+    
+    comments = Comment.query.filter_by(forum_post_id=forum_id).order_by(Comment.date_posted.desc()).all()
+    return render_template('forum_details.html', forum=forum, comments=comments)
+
+@app.route('/delete_comment/<int:comment_id>', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if comment.user_id != session['user_id']:
+        flash('You do not have permission to delete this comment.', 'danger')
+        return redirect(url_for('forum_details', forum_id=comment.forum_post_id))
+    
+    forum = comment.forum_post
+    forum.comment_count -= 1
+    db.session.delete(comment)
+    db.session.commit()
+    
+    flash('Your comment has been deleted.', 'success')
+    return redirect(url_for('forum_details', forum_id=comment.forum_post_id))
