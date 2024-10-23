@@ -13,22 +13,33 @@ def push_to_github():
         # Configure git with specified user info
         subprocess.run(['git', 'config', '--global', 'user.name', 'WiYO App'], check=True)
         subprocess.run(['git', 'config', '--global', 'user.email', 'app@wiyo.example.com'], check=True)
+        
+        # Initialize repository if it doesn't exist
+        if not os.path.exists('.git'):
+            subprocess.run(['git', 'init'], check=True)
 
         # Add all files
         subprocess.run(['git', 'add', '-A'], check=True)
 
         # Commit changes with specified message
-        subprocess.run(['git', 'commit', '-m', 'Update WiYO application'], check=True)
+        try:
+            subprocess.run(['git', 'commit', '-m', 'Update WiYO application'], check=True)
+        except subprocess.CalledProcessError:
+            # If there are no changes to commit, continue
+            print("No changes to commit")
+            pass
 
         # Set remote URL with token in the correct format
         remote_url = f'https://{token}@github.com/zirenk/WiYO.git'
         
-        # Update remote URL
+        # Try to remove existing remote if it exists
         try:
-            subprocess.run(['git', 'remote', 'set-url', 'origin', remote_url], check=True)
-        except:
-            # If remote doesn't exist, add it
-            subprocess.run(['git', 'remote', 'add', 'origin', remote_url], check=True)
+            subprocess.run(['git', 'remote', 'remove', 'origin'], check=True)
+        except subprocess.CalledProcessError:
+            pass
+
+        # Add new remote
+        subprocess.run(['git', 'remote', 'add', 'origin', remote_url], check=True)
 
         # Force push to main branch
         subprocess.run(['git', 'push', '-f', 'origin', 'main'], check=True)
