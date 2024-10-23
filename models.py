@@ -1,16 +1,33 @@
+
 import os
 from app import db
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     login_code = db.Column(db.String(8), unique=True, nullable=False)
     username = db.Column(db.String(64), unique=True, nullable=False)
     demographics = db.Column(JSONB)
     forum_posts = db.relationship('ForumPost', backref='author', lazy='dynamic')
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
 
 class Poll(db.Model):
     id = db.Column(db.Integer, primary_key=True)
