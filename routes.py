@@ -66,6 +66,32 @@ def polls():
     
     return render_template('polls.html', poll=next_poll, no_polls=False)
 
+@app.route('/forum')
+@login_required
+def forum():
+    forums = ForumPost.query.order_by(ForumPost.date_posted.desc()).all()
+    return render_template('forum.html', forums=forums)
+
+@app.route('/forum/<int:forum_id>')
+@login_required
+def forum_details(forum_id):
+    forum = ForumPost.query.get_or_404(forum_id)
+    comments = Comment.query.filter_by(forum_post_id=forum_id).order_by(Comment.date_posted.desc()).all()
+    return render_template('forum_details.html', forum=forum, comments=comments)
+
+@app.route('/demographics', methods=['GET', 'POST'])
+@login_required
+def demographics():
+    if request.method == 'POST':
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            data = request.get_json()
+            current_user.demographics = data
+            db.session.commit()
+            return jsonify({'success': True})
+        return redirect(url_for('demographics'))
+    
+    return render_template('demographics.html', user=current_user, edit_mode=False)
+
 @app.route('/chat', methods=['GET'])
 @login_required
 def chat():
