@@ -28,8 +28,8 @@ def push_to_github():
             print("No changes to commit")
             pass
 
-        # Set remote URL with token using the oauth2 format
-        remote_url = f'https://oauth2:{token}@github.com/zirenk/WiYO.git'
+        # Set remote URL with token directly in URL
+        remote_url = f'https://{token}@github.com/zirenk/WiYO.git'
         
         # Try to remove existing remote if it exists
         try:
