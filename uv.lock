@@ -275,6 +275,15 @@ wheels = [
 ]
 
 [[package]]
+name = "flask-testing"
+version = "0.8.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "flask" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a2/70/5611137c59b576ac36e9e8226f01cd138d4cd08688d5aad9eadfdaf6f57e/Flask-Testing-0.8.1.tar.gz", hash = "sha256:0a734d7b68e63a9410b413cd7b1f96456f9a858bd09a6222d465650cc782eb01", size = 45214 }
+
+[[package]]
 name = "greenlet"
 version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -698,6 +707,7 @@ dependencies = [
     { name = "flask-login" },
     { name = "flask-migrate" },
     { name = "flask-sqlalchemy" },
+    { name = "flask-testing" },
     { name = "jinja2" },
     { name = "openai" },
     { name = "psycopg2-binary" },
@@ -717,6 +727,7 @@ requires-dist = [
     { name = "flask-login" },
     { name = "flask-migrate", specifier = ">=4.0.7" },
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
+    { name = "flask-testing" },
     { name = "jinja2" },
     { name = "openai", specifier = ">=1.52.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
