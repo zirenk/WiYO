@@ -22,11 +22,11 @@ def login():
         if user:
             login_user(user, remember=remember_me)
             session['user_id'] = user.id
-            if request.is_xhr:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': True, 'redirect': url_for('dashboard')})
             return redirect(url_for('dashboard'))
         else:
-            if request.is_xhr:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': False, 'error': 'Invalid login code'})
             flash('Invalid login code', 'danger')
             
@@ -43,26 +43,49 @@ def demographics():
     edit_mode = request.args.get('edit', 'false').lower() == 'true'
     
     if request.method == 'POST':
-        if request.is_json:
-            data = request.json
-            current_user.demographics = data
-            db.session.commit()
-            return jsonify(success=True, message="Demographics updated successfully")
-        else:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            data = request.get_json()
+            if not data:
+                return jsonify(success=False, error="Invalid data format"), 400
+                
             current_user.demographics = {
-                'age': request.form.get('age'),
-                'gender': request.form.get('gender'),
-                'education': request.form.get('education'),
-                'employment': request.form.get('employment'),
-                'marital_status': request.form.get('marital_status'),
-                'income': request.form.get('income'),
-                'location': request.form.get('location'),
-                'ethnicity': request.form.get('ethnicity'),
-                'political_affiliation': request.form.get('political_affiliation'),
-                'religion': request.form.get('religion')
+                'age': data.get('age'),
+                'gender': data.get('gender'),
+                'education': data.get('education'),
+                'employment': data.get('employment'),
+                'marital_status': data.get('marital_status'),
+                'income': data.get('income'),
+                'location': data.get('location'),
+                'ethnicity': data.get('ethnicity'),
+                'political_affiliation': data.get('political_affiliation'),
+                'religion': data.get('religion')
             }
-            db.session.commit()
-            flash('Demographics updated successfully!', 'success')
+            
+            try:
+                db.session.commit()
+                return jsonify(success=True, message="Demographics updated successfully")
+            except Exception as e:
+                db.session.rollback()
+                return jsonify(success=False, error=str(e)), 500
+        else:
+            try:
+                current_user.demographics = {
+                    'age': request.form.get('age'),
+                    'gender': request.form.get('gender'),
+                    'education': request.form.get('education'),
+                    'employment': request.form.get('employment'),
+                    'marital_status': request.form.get('marital_status'),
+                    'income': request.form.get('income'),
+                    'location': request.form.get('location'),
+                    'ethnicity': request.form.get('ethnicity'),
+                    'political_affiliation': request.form.get('political_affiliation'),
+                    'religion': request.form.get('religion')
+                }
+                db.session.commit()
+                flash('Demographics updated successfully!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash('Error updating demographics: ' + str(e), 'danger')
             return redirect(url_for('demographics'))
     
     return render_template('demographics.html', user=current_user, edit_mode=edit_mode)
@@ -102,15 +125,19 @@ def submit_poll():
     if existing_response:
         flash('You have already responded to this poll', 'warning')
     else:
-        response = Response(
-            user_id=current_user.id,
-            poll_id=poll_id,
-            choice=choice,
-            responded=True
-        )
-        db.session.add(response)
-        db.session.commit()
-        flash('Response submitted successfully', 'success')
+        try:
+            response = Response(
+                user_id=current_user.id,
+                poll_id=poll_id,
+                choice=choice,
+                responded=True
+            )
+            db.session.add(response)
+            db.session.commit()
+            flash('Response submitted successfully', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error submitting response: ' + str(e), 'danger')
     
     return redirect(url_for('results', poll_id=poll_id, just_submitted=True))
 
@@ -150,15 +177,20 @@ def index():
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
 def create_wiyo_account():
     if request.method == 'POST':
-        login_code = generate_login_code()
-        username = generate_username()
-        
-        new_user = User(login_code=login_code, username=username)
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Your WiYO account has been created successfully!', 'success')
-        return render_template('account_created.html', login_code=login_code, username=username)
+        try:
+            login_code = generate_login_code()
+            username = generate_username()
+            
+            new_user = User(login_code=login_code, username=username)
+            db.session.add(new_user)
+            db.session.commit()
+            
+            flash('Your WiYO account has been created successfully!', 'success')
+            return render_template('account_created.html', login_code=login_code, username=username)
+        except Exception as e:
+            db.session.rollback()
+            flash('Error creating account: ' + str(e), 'danger')
+            return redirect(url_for('create_wiyo_account'))
     
     return render_template('create_wiyo_account.html')
 
@@ -182,16 +214,21 @@ def create_forum():
         description = request.form.get('description')
         content = request.form.get('content')
         
-        post = ForumPost(
-            title=title,
-            description=description,
-            content=content,
-            author=current_user
-        )
-        db.session.add(post)
-        db.session.commit()
-        
-        return redirect(url_for('forum'))
+        try:
+            post = ForumPost(
+                title=title,
+                description=description,
+                content=content,
+                author=current_user
+            )
+            db.session.add(post)
+            db.session.commit()
+            flash('Forum post created successfully!', 'success')
+            return redirect(url_for('forum'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error creating forum post: ' + str(e), 'danger')
+            return redirect(url_for('create_forum'))
     
     return render_template('create_forum.html')
 
@@ -203,10 +240,20 @@ def forum_details(forum_id):
     
     if request.method == 'POST':
         content = request.form.get('content')
-        comment = Comment(content=content, author=current_user, forum_post=forum)
-        forum.comment_count += 1
-        db.session.add(comment)
-        db.session.commit()
+        if not content:
+            flash('Comment content is required', 'danger')
+            return redirect(url_for('forum_details', forum_id=forum_id))
+            
+        try:
+            comment = Comment(content=content, author=current_user, forum_post=forum)
+            forum.comment_count += 1
+            db.session.add(comment)
+            db.session.commit()
+            flash('Comment added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error adding comment: ' + str(e), 'danger')
+            
         return redirect(url_for('forum_details', forum_id=forum_id))
     
     return render_template('forum_details.html', forum=forum, comments=comments)
@@ -219,11 +266,16 @@ def delete_comment(comment_id):
         flash('You can only delete your own comments', 'danger')
         return redirect(url_for('forum_details', forum_id=comment.forum_post_id))
     
-    forum = comment.forum_post
-    forum.comment_count -= 1
-    db.session.delete(comment)
-    db.session.commit()
-    flash('Comment deleted successfully', 'success')
+    try:
+        forum = comment.forum_post
+        forum.comment_count -= 1
+        db.session.delete(comment)
+        db.session.commit()
+        flash('Comment deleted successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting comment: ' + str(e), 'danger')
+        
     return redirect(url_for('forum_details', forum_id=comment.forum_post_id))
 
 @app.before_request
