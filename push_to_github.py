@@ -40,17 +40,10 @@ def push_to_github():
         # Add new remote
         subprocess.run(['git', 'remote', 'add', 'origin', remote_url], check=True)
 
-        # Set main branch if not exists
-        try:
-            subprocess.run(['git', 'checkout', '-b', 'main'], check=True)
-        except subprocess.CalledProcessError:
-            # Branch already exists, just switch to it
-            subprocess.run(['git', 'checkout', 'main'], check=True)
-
-        # Force push to main branch with verbose output
+        # Push to main branch with verbose output and force flag
         result = subprocess.run(['git', 'push', '-v', '-f', 'origin', 'main'], 
-                              capture_output=True, 
-                              text=True)
+                             capture_output=True, 
+                             text=True)
         if result.returncode != 0:
             print(f"Push failed with error: {result.stderr}")
             return False
