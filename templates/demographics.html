@@ -11,7 +11,7 @@
     </div>
     <div class="mb-3">
         <label for="age" class="form-label">Age</label>
-        <input type="number" class="form-control" id="age" name="age" value="{{ user.demographics.age if user.demographics else '' }}" {% if not edit_mode %}readonly{% endif %} required>
+        <input type="number" class="form-control" id="age" name="age" min="18" max="120" value="{{ user.demographics.age if user.demographics else '' }}" {% if not edit_mode %}readonly{% endif %} required>
     </div>
     <div class="mb-3">
         <label for="gender" class="form-label">Gender</label>
@@ -33,7 +33,80 @@
             <option value="phd" {% if user.demographics and user.demographics.education == 'phd' %}selected{% endif %}>Ph.D. or higher</option>
         </select>
     </div>
-    <!-- Add the remaining demographic fields here -->
+    <div class="mb-3">
+        <label for="employment" class="form-label">Employment Status</label>
+        <select class="form-select" id="employment" name="employment" {% if not edit_mode %}disabled{% endif %} required>
+            <option value="">Select employment status</option>
+            <option value="full_time" {% if user.demographics and user.demographics.employment == 'full_time' %}selected{% endif %}>Full-time</option>
+            <option value="part_time" {% if user.demographics and user.demographics.employment == 'part_time' %}selected{% endif %}>Part-time</option>
+            <option value="self_employed" {% if user.demographics and user.demographics.employment == 'self_employed' %}selected{% endif %}>Self-employed</option>
+            <option value="unemployed" {% if user.demographics and user.demographics.employment == 'unemployed' %}selected{% endif %}>Unemployed</option>
+            <option value="student" {% if user.demographics and user.demographics.employment == 'student' %}selected{% endif %}>Student</option>
+            <option value="retired" {% if user.demographics and user.demographics.employment == 'retired' %}selected{% endif %}>Retired</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="marital_status" class="form-label">Marital Status</label>
+        <select class="form-select" id="marital_status" name="marital_status" {% if not edit_mode %}disabled{% endif %} required>
+            <option value="">Select marital status</option>
+            <option value="single" {% if user.demographics and user.demographics.marital_status == 'single' %}selected{% endif %}>Single</option>
+            <option value="married" {% if user.demographics and user.demographics.marital_status == 'married' %}selected{% endif %}>Married</option>
+            <option value="divorced" {% if user.demographics and user.demographics.marital_status == 'divorced' %}selected{% endif %}>Divorced</option>
+            <option value="widowed" {% if user.demographics and user.demographics.marital_status == 'widowed' %}selected{% endif %}>Widowed</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="income" class="form-label">Annual Income Range</label>
+        <select class="form-select" id="income" name="income" {% if not edit_mode %}disabled{% endif %} required>
+            <option value="">Select income range</option>
+            <option value="under_25k" {% if user.demographics and user.demographics.income == 'under_25k' %}selected{% endif %}>Under $25,000</option>
+            <option value="25k_50k" {% if user.demographics and user.demographics.income == '25k_50k' %}selected{% endif %}>$25,000 - $50,000</option>
+            <option value="50k_75k" {% if user.demographics and user.demographics.income == '50k_75k' %}selected{% endif %}>$50,000 - $75,000</option>
+            <option value="75k_100k" {% if user.demographics and user.demographics.income == '75k_100k' %}selected{% endif %}>$75,000 - $100,000</option>
+            <option value="over_100k" {% if user.demographics and user.demographics.income == 'over_100k' %}selected{% endif %}>Over $100,000</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="location" class="form-label">Location (City)</label>
+        <input type="text" class="form-control" id="location" name="location" value="{{ user.demographics.location if user.demographics else '' }}" {% if not edit_mode %}readonly{% endif %} required>
+    </div>
+    <div class="mb-3">
+        <label for="ethnicity" class="form-label">Ethnicity</label>
+        <select class="form-select" id="ethnicity" name="ethnicity" {% if not edit_mode %}disabled{% endif %} required>
+            <option value="">Select ethnicity</option>
+            <option value="asian" {% if user.demographics and user.demographics.ethnicity == 'asian' %}selected{% endif %}>Asian</option>
+            <option value="black" {% if user.demographics and user.demographics.ethnicity == 'black' %}selected{% endif %}>Black or African American</option>
+            <option value="hispanic" {% if user.demographics and user.demographics.ethnicity == 'hispanic' %}selected{% endif %}>Hispanic or Latino</option>
+            <option value="white" {% if user.demographics and user.demographics.ethnicity == 'white' %}selected{% endif %}>White</option>
+            <option value="other" {% if user.demographics and user.demographics.ethnicity == 'other' %}selected{% endif %}>Other</option>
+            <option value="prefer_not_to_say" {% if user.demographics and user.demographics.ethnicity == 'prefer_not_to_say' %}selected{% endif %}>Prefer not to say</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="political_affiliation" class="form-label">Political Affiliation</label>
+        <select class="form-select" id="political_affiliation" name="political_affiliation" {% if not edit_mode %}disabled{% endif %} required>
+            <option value="">Select political affiliation</option>
+            <option value="democrat" {% if user.demographics and user.demographics.political_affiliation == 'democrat' %}selected{% endif %}>Democrat</option>
+            <option value="republican" {% if user.demographics and user.demographics.political_affiliation == 'republican' %}selected{% endif %}>Republican</option>
+            <option value="independent" {% if user.demographics and user.demographics.political_affiliation == 'independent' %}selected{% endif %}>Independent</option>
+            <option value="other" {% if user.demographics and user.demographics.political_affiliation == 'other' %}selected{% endif %}>Other</option>
+            <option value="prefer_not_to_say" {% if user.demographics and user.demographics.political_affiliation == 'prefer_not_to_say' %}selected{% endif %}>Prefer not to say</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="religion" class="form-label">Religious Affiliation</label>
+        <select class="form-select" id="religion" name="religion" {% if not edit_mode %}disabled{% endif %} required>
+            <option value="">Select religious affiliation</option>
+            <option value="christianity" {% if user.demographics and user.demographics.religion == 'christianity' %}selected{% endif %}>Christianity</option>
+            <option value="islam" {% if user.demographics and user.demographics.religion == 'islam' %}selected{% endif %}>Islam</option>
+            <option value="judaism" {% if user.demographics and user.demographics.religion == 'judaism' %}selected{% endif %}>Judaism</option>
+            <option value="buddhism" {% if user.demographics and user.demographics.religion == 'buddhism' %}selected{% endif %}>Buddhism</option>
+            <option value="hinduism" {% if user.demographics and user.demographics.religion == 'hinduism' %}selected{% endif %}>Hinduism</option>
+            <option value="none" {% if user.demographics and user.demographics.religion == 'none' %}selected{% endif %}>None</option>
+            <option value="other" {% if user.demographics and user.demographics.religion == 'other' %}selected{% endif %}>Other</option>
+            <option value="prefer_not_to_say" {% if user.demographics and user.demographics.religion == 'prefer_not_to_say' %}selected{% endif %}>Prefer not to say</option>
+        </select>
+    </div>
     <button type="submit" id="submit-button" class="btn btn-primary" {% if not edit_mode %}style="display: none;"{% endif %}>Submit Demographics</button>
 </form>
 {% endblock %}
@@ -42,19 +115,19 @@
 <script>
 let editMode = {{ edit_mode|tojson }};
 
-function toggleEditMode(e) {
-    if (e) e.preventDefault();
+function toggleEditMode() {
     editMode = !editMode;
     const form = document.getElementById('demographics-form');
     const editToggle = document.getElementById('edit-toggle');
     const submitButton = document.getElementById('submit-button');
 
+    // Update all form controls
     form.querySelectorAll('input, select').forEach(element => {
-        if (element.id !== 'edit-toggle') {
+        if (element.type === 'button') return;
+        if (element.tagName === 'INPUT') {
+            element.readOnly = !editMode;
+        } else {
             element.disabled = !editMode;
-            if (element.tagName === 'INPUT') {
-                element.readOnly = !editMode;
-            }
         }
     });
 
@@ -73,30 +146,32 @@ document.addEventListener('DOMContentLoaded', function() {
     editToggle.addEventListener('click', toggleEditMode);
 
     form.addEventListener('submit', function(e) {
-        if (!editMode) {
-            e.preventDefault();
-            return;
-        }
-        
-        // Form submission logic here
-        // You can use AJAX to submit the form without page reload
         e.preventDefault();
-        const formData = new FormData(form);
         
+        if (!editMode) return;
+
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
         fetch(form.action, {
             method: 'POST',
-            body: formData,
             headers: {
+                'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
-            }
+            },
+            body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 alert('Demographics updated successfully!');
                 toggleEditMode();
+                location.reload();
             } else {
-                alert('Error updating demographics. Please try again.');
+                alert(data.error || 'Error updating demographics. Please try again.');
             }
         })
         .catch(error => {
