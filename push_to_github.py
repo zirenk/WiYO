@@ -29,7 +29,7 @@ def push_to_github():
             pass
 
         # Set remote URL with token in the correct format
-        remote_url = f'https://x-access-token:{token}@github.com/zirenk/WiYO.git'
+        remote_url = f'https://{token}@github.com/zirenk/WiYO.git'
         
         # Try to remove existing remote if it exists
         try:
@@ -39,6 +39,13 @@ def push_to_github():
 
         # Add new remote
         subprocess.run(['git', 'remote', 'add', 'origin', remote_url], check=True)
+
+        # Set main branch if not exists
+        try:
+            subprocess.run(['git', 'checkout', '-b', 'main'], check=True)
+        except subprocess.CalledProcessError:
+            # Branch already exists, just switch to it
+            subprocess.run(['git', 'checkout', 'main'], check=True)
 
         # Force push to main branch
         subprocess.run(['git', 'push', '-f', 'origin', 'main'], check=True)
