@@ -13,6 +13,11 @@ import json
 import openai
 import os
 import time
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -20,15 +25,20 @@ def login():
         login_code = request.form.get('login_code')
         remember_me = bool(request.form.get('remember_me'))
         
+        logger.debug(f"Login attempt with code length: {len(login_code) if login_code else 'None'}")
+        
         user = User.query.filter_by(login_code=login_code).first()
+        logger.debug(f"User found: {user is not None}")
         
         if user:
             login_user(user, remember=remember_me)
             session['user_id'] = user.id
+            logger.debug(f"User logged in successfully. Session ID: {user.id}")
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': True, 'redirect': url_for('dashboard')})
             return redirect(url_for('dashboard'))
         else:
+            logger.warning(f"Failed login attempt with code: {login_code}")
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'success': False, 'error': 'Invalid login code'})
             flash('Invalid login code', 'danger')
@@ -92,92 +102,23 @@ def demographics():
     
     return render_template('demographics.html', user=current_user, edit_mode=False)
 
-@app.route('/chat', methods=['GET'])
-@login_required
-def chat():
-    return render_template('chat.html')
-
-@app.route('/chat', methods=['POST'])
-@login_required
-def process_chat():
-    if not request.is_json:
-        return jsonify({'error': 'Invalid request format'}), 400
-    
-    user_message = request.json.get('user_message')
-    if not user_message:
-        return jsonify({'error': 'No message provided'}), 400
-
-    try:
-        client = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
-        
-        # Get user demographics for context
-        demographics = current_user.demographics or {}
-        demographics_str = ""
-        if demographics:
-            demographics_str = "The user has the following demographics:\n"
-            for key, value in demographics.items():
-                demographics_str += f"- {key}: {value}\n"
-        
-        system_message = (
-            "You are WiYO AI, a helpful assistant focused on providing clear and concise responses. "
-            "Please consider the following user demographics while providing responses:\n"
-            f"{demographics_str}\n"
-            "Tailor your responses to be relevant and appropriate for the user's demographic profile when applicable, "
-            "but maintain privacy and avoid directly referencing specific demographic details unless the user asks about them."
-        )
-        
-        # Create a chat completion with error handling
-        try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_message}
-                ],
-                max_tokens=150,
-                temperature=0.7
-            )
-            
-            if response and response.choices and len(response.choices) > 0:
-                ai_message = response.choices[0].message.content
-                if ai_message:
-                    return jsonify({'ai_message': ai_message.strip()})
-                else:
-                    raise ValueError("Empty response from OpenAI API")
-            else:
-                raise ValueError("Invalid response structure from OpenAI API")
-                
-        except openai.RateLimitError:
-            return jsonify({'error': 'Rate limit exceeded. Please try again in a moment.'}), 429
-        except openai.AuthenticationError:
-            return jsonify({'error': 'Authentication error with OpenAI API.'}), 401
-        except Exception as e:
-            app.logger.error(f"OpenAI API error: {str(e)}")
-            return jsonify({'error': 'An error occurred while processing your request.'}), 500
-            
-    except Exception as e:
-        app.logger.error(f"General error in chat: {str(e)}")
-        return jsonify({'error': 'An unexpected error occurred.'}), 500
-
-@app.route('/chat/status', methods=['GET'])
-@login_required
-def chat_status():
-    return jsonify({'status': 'complete', 'message': 'Direct response mode is active'})
-
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
 def create_wiyo_account():
     if request.method == 'POST':
         try:
             login_code = generate_login_code()
             username = generate_username()
+            logger.debug(f"Creating new account with username: {username}")
             
             new_user = User(login_code=login_code, username=username)
             db.session.add(new_user)
             db.session.commit()
+            logger.debug(f"Account created successfully for username: {username}")
             
             flash('Your WiYO account has been created successfully!', 'success')
             return render_template('account_created.html', login_code=login_code, username=username)
         except Exception as e:
+            logger.error(f"Error creating account: {str(e)}")
             db.session.rollback()
             flash('Error creating account: ' + str(e), 'danger')
             return redirect(url_for('create_wiyo_account'))
