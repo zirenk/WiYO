@@ -25,12 +25,11 @@ def push_to_github():
         try:
             subprocess.run(['git', 'commit', '-m', 'Update WiYO application'], check=True)
         except subprocess.CalledProcessError:
-            # If there are no changes to commit, continue
             print("No changes to commit")
             pass
 
         # Set remote URL with token in the correct format
-        remote_url = f'https://{token}@github.com/zirenk/WiYO.git'
+        remote_url = f'https://x-access-token:{token}@github.com/zirenk/WiYO.git'
         
         # Try to remove existing remote if it exists
         try:
