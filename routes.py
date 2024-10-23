@@ -84,12 +84,28 @@ def process_chat():
     try:
         client = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
         
+        # Get user demographics for context
+        demographics = current_user.demographics or {}
+        demographics_str = ""
+        if demographics:
+            demographics_str = "The user has the following demographics:\n"
+            for key, value in demographics.items():
+                demographics_str += f"- {key}: {value}\n"
+        
+        system_message = (
+            "You are WiYO AI, a helpful assistant focused on providing clear and concise responses. "
+            "Please consider the following user demographics while providing responses:\n"
+            f"{demographics_str}\n"
+            "Tailor your responses to be relevant and appropriate for the user's demographic profile when applicable, "
+            "but maintain privacy and avoid directly referencing specific demographic details unless the user asks about them."
+        )
+        
         # Create a chat completion with error handling
         try:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are WiYO AI, a helpful assistant focused on providing clear and concise responses."},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": user_message}
                 ],
                 max_tokens=150,
