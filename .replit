@@ -115,6 +115,22 @@ args = "Create Tables Migration"
 task = "workflow.run"
 args = "Apply Tables Migration"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Initialize DB"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Apply Initial Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Create Tables"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Final Schema Check"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -335,7 +351,7 @@ agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flask db migrate -m 'initial migration'"
+args = "flask db migrate -m 'create initial tables'"
 
 [[workflows.workflow]]
 name = "Apply Migration"
@@ -402,6 +418,50 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "flask db upgrade"
+
+[[workflows.workflow]]
+name = "Initialize DB"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db init"
+
+[[workflows.workflow]]
+name = "Apply Initial Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db upgrade"
+
+[[workflows.workflow]]
+name = "Create Tables"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python create_tables.py"
+
+[[workflows.workflow]]
+name = "Final Schema Check"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python display_schema.py"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
