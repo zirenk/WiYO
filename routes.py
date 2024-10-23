@@ -76,6 +76,11 @@ def polls():
     
     return render_template('polls.html', poll=next_poll, no_polls=False)
 
+@app.route('/chat', methods=['GET', 'POST'])
+@login_required
+def chat():
+    return render_template('chat.html')
+
 @app.route('/forum')
 @login_required
 def forum():
