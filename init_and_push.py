@@ -18,13 +18,13 @@ def init_and_push():
         # Commit changes
         subprocess.run(['git', 'commit', '-m', 'Initial commit of WiYO application'], check=True)
         
-        # Configure the remote with token
+        # Configure the remote with token directly in URL
         token = os.environ.get('GITHUB_TOKEN')
         if not token:
             print("GitHub token not found")
             return False
             
-        remote_url = f'https://oauth2:{token}@github.com/zirenk/WiYO.git'
+        remote_url = f'https://{token}@github.com/zirenk/WiYO.git'
         
         # Remove existing remote if it exists
         try:

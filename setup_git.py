@@ -13,11 +13,17 @@ def setup_git():
             print("GitHub token not found in environment")
             return False
             
-        # Configure the remote URL with the token
-        remote_url = f'https://x-access-token:{token}@github.com/zirenk/WiYO.git'
-        subprocess.run(['git', 'remote', 'set-url', 'origin', remote_url], check=True)
+        # Configure the remote URL with the token directly in URL
+        remote_url = f'https://{token}@github.com/zirenk/WiYO.git'
         
-        # Try to push
+        # Try to remove existing remote if it exists
+        try:
+            subprocess.run(['git', 'remote', 'remove', 'origin'], check=True)
+        except:
+            pass
+            
+        # Add new remote and push
+        subprocess.run(['git', 'remote', 'add', 'origin', remote_url], check=True)
         subprocess.run(['git', 'push', '-f', 'origin', 'main'], check=True)
         return True
         
