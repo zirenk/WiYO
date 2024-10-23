@@ -52,6 +52,20 @@ def logout():
     flash('You have been logged out', 'info')
     return redirect(url_for('login'))
 
+@app.route('/polls')
+@login_required
+def polls():
+    # Get first unanswered poll for the user
+    responded_polls = Response.query.filter_by(user_id=current_user.id).with_entities(Response.poll_id).all()
+    responded_poll_ids = [p[0] for p in responded_polls]
+    
+    next_poll = Poll.query.filter(~Poll.id.in_(responded_poll_ids)).order_by(Poll.number).first()
+    
+    if next_poll is None:
+        return render_template('polls.html', no_polls=True)
+    
+    return render_template('polls.html', poll=next_poll, no_polls=False)
+
 @app.route('/chat', methods=['GET'])
 @login_required
 def chat():
@@ -70,35 +84,44 @@ def process_chat():
     try:
         client = openai.OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
         
-        # Create a chat completion
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are WiYO AI, a helpful assistant focused on providing clear and concise responses."},
-                {"role": "user", "content": user_message}
-            ],
-            max_tokens=150,
-            temperature=0.7
-        )
-        
-        # Extract the AI's response
-        ai_message = response.choices[0].message.content.strip()
-        return jsonify({'ai_message': ai_message})
-    
-    except openai.RateLimitError:
-        return jsonify({'error': 'Rate limit exceeded. Please try again in a moment.'}), 429
-    except openai.AuthenticationError:
-        return jsonify({'error': 'Authentication error with OpenAI API.'}), 401
+        # Create a chat completion with error handling
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are WiYO AI, a helpful assistant focused on providing clear and concise responses."},
+                    {"role": "user", "content": user_message}
+                ],
+                max_tokens=150,
+                temperature=0.7
+            )
+            
+            if response and response.choices and len(response.choices) > 0:
+                ai_message = response.choices[0].message.content
+                if ai_message:
+                    return jsonify({'ai_message': ai_message.strip()})
+                else:
+                    raise ValueError("Empty response from OpenAI API")
+            else:
+                raise ValueError("Invalid response structure from OpenAI API")
+                
+        except openai.RateLimitError:
+            return jsonify({'error': 'Rate limit exceeded. Please try again in a moment.'}), 429
+        except openai.AuthenticationError:
+            return jsonify({'error': 'Authentication error with OpenAI API.'}), 401
+        except Exception as e:
+            app.logger.error(f"OpenAI API error: {str(e)}")
+            return jsonify({'error': 'An error occurred while processing your request.'}), 500
+            
     except Exception as e:
-        app.logger.error(f"Error in chat: {str(e)}")
-        return jsonify({'error': 'An error occurred while processing your request.'}), 500
+        app.logger.error(f"General error in chat: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred.'}), 500
 
 @app.route('/chat/status', methods=['GET'])
 @login_required
 def chat_status():
     return jsonify({'status': 'complete', 'message': 'Direct response mode is active'})
 
-# Re-add other existing routes
 @app.route('/create_wiyo_account', methods=['GET', 'POST'])
 def create_wiyo_account():
     if request.method == 'POST':
@@ -118,5 +141,3 @@ def create_wiyo_account():
             return redirect(url_for('create_wiyo_account'))
     
     return render_template('create_wiyo_account.html')
-
-# Include all other existing routes...
