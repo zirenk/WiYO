@@ -10,29 +10,27 @@ def push_to_github():
             print("GitHub token not found")
             return False
 
-        # Configure git if not already configured
+        # Configure git with specified user info
         subprocess.run(['git', 'config', '--global', 'user.name', 'WiYO App'], check=True)
         subprocess.run(['git', 'config', '--global', 'user.email', 'app@wiyo.example.com'], check=True)
 
-        # Force add all files
+        # Add all files
         subprocess.run(['git', 'add', '-A'], check=True)
-        
-        # Check if there are changes to commit
-        status = subprocess.run(['git', 'status', '--porcelain'], capture_output=True, text=True)
-        if status.stdout.strip():
-            # There are changes to commit
-            subprocess.run(['git', 'commit', '-m', 'Update WiYO application files'], check=True)
-        
-        # Set up the remote with token
+
+        # Commit changes with specified message
+        subprocess.run(['git', 'commit', '-m', 'Update WiYO application'], check=True)
+
+        # Set remote URL with token in the correct format
         remote_url = f'https://{token}@github.com/zirenk/WiYO.git'
         
         # Update remote URL
         try:
             subprocess.run(['git', 'remote', 'set-url', 'origin', remote_url], check=True)
         except:
+            # If remote doesn't exist, add it
             subprocess.run(['git', 'remote', 'add', 'origin', remote_url], check=True)
 
-        # Push to GitHub with force flag
+        # Force push to main branch
         subprocess.run(['git', 'push', '-f', 'origin', 'main'], check=True)
         print("Successfully pushed to GitHub!")
         return True
