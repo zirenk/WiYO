@@ -2,12 +2,13 @@ import pytest
 from app import app, db
 from models import User, Poll, Response
 from utils import generate_login_code, generate_username
+import os
 
 @pytest.fixture(scope='session')
 def test_client():
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost:5432/test_db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     
     # Initialize the test client
     with app.test_client() as client:
@@ -23,9 +24,11 @@ def test_client():
 def test_user(test_client):
     """Create a test user"""
     with app.app_context():
-        login_code = "12345678"
-        username = "TestHuman123"
-        user = User(login_code=login_code, username=username)
+        login_code = generate_login_code()
+        username = generate_username()
+        user = User()
+        user.login_code = login_code
+        user.username = username
         db.session.add(user)
         db.session.commit()
         
@@ -39,11 +42,10 @@ def test_user(test_client):
 def test_poll(test_client):
     """Create a test poll"""
     with app.app_context():
-        poll = Poll(
-            number=1,
-            question="Test Poll Question?",
-            choices=["Option 1", "Option 2", "Option 3"]
-        )
+        poll = Poll()
+        poll.number = 1
+        poll.question = "Test Poll Question?"
+        poll.choices = ["Option 1", "Option 2", "Option 3"]
         db.session.add(poll)
         db.session.commit()
         
