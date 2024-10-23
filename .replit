@@ -83,6 +83,38 @@ args = "Run Tests"
 task = "workflow.run"
 args = "Setup Test Database"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Create Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Create Initial Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Apply Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Final Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Verify Schema"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Initialize Migrations"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Create Tables Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Apply Tables Migration"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -274,6 +306,94 @@ args = "python -m pytest -v"
 
 [[workflows.workflow]]
 name = "Setup Test Database"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db upgrade"
+
+[[workflows.workflow]]
+name = "Create Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db migrate -m 'create all required tables'"
+
+[[workflows.workflow]]
+name = "Create Initial Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db migrate -m 'initial migration'"
+
+[[workflows.workflow]]
+name = "Apply Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db upgrade"
+
+[[workflows.workflow]]
+name = "Final Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db upgrade"
+
+[[workflows.workflow]]
+name = "Verify Schema"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python display_schema.py"
+
+[[workflows.workflow]]
+name = "Initialize Migrations"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db init"
+
+[[workflows.workflow]]
+name = "Create Tables Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "flask db migrate -m 'create all required tables'"
+
+[[workflows.workflow]]
+name = "Apply Tables Migration"
 author = "agent"
 
 [workflows.workflow.metadata]
