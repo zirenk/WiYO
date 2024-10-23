@@ -71,6 +71,10 @@ args = "Create and Push Repo"
 task = "workflow.run"
 args = "Push to GitHub"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Verify GitHub Access"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -237,6 +241,17 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python push_to_github.py"
+
+[[workflows.workflow]]
+name = "Verify GitHub Access"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python verify_github_access.py"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
