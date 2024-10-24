@@ -567,7 +567,7 @@ agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m pytest --cov=. --cov-report=term-missing -v"
+args = "python tests/create_test_db.py && python -m pytest --cov=. --cov-report=term-missing -v"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]

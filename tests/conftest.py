@@ -3,6 +3,7 @@ from app import app, db
 from models import User, Poll, Response, ForumPost, Comment
 import os
 import logging
+from sqlalchemy import text
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -12,7 +13,6 @@ def setup_test_environment():
     # Set test configurations
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
     
     # Push an application context
     ctx = app.app_context()
@@ -20,6 +20,9 @@ def setup_test_environment():
     
     # Create all tables
     logger.info("Creating test database tables...")
+    db.session.execute(text('DROP SCHEMA IF EXISTS public CASCADE'))
+    db.session.execute(text('CREATE SCHEMA public'))
+    db.session.commit()
     db.create_all()
     
     yield
