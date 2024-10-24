@@ -9,37 +9,33 @@ def app_context():
         # Configure test database
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
         
-        # Create all tables in test database
+        # Drop and recreate tables
+        db.drop_all()
         db.create_all()
         
         yield app
         
-        # Clean up
+        # Clean up after all tests
         db.session.remove()
         db.drop_all()
 
 @pytest.fixture(scope='function')
 def client(app_context):
     with app.test_client() as client:
-        # Clear any existing data
-        for table in reversed(db.metadata.sorted_tables):
-            db.session.execute(table.delete())
-        db.session.commit()
-        
+        db.create_all()  # Ensure tables exist
         yield client
-        
-        # Clean up after each test
-        db.session.rollback()
+        db.session.remove()  # Remove session
+        db.drop_all()  # Clean up tables
 
 @pytest.fixture(scope='function')
 def test_user(client):
-    with app.app_context():
-        user = User(username="TestUser123", login_code="12345678")
-        db.session.add(user)
-        db.session.commit()
-        
-        yield user
+    user = User(username="TestUser123", login_code="12345678")
+    db.session.add(user)
+    db.session.commit()
+    yield user
+    db.session.rollback()
 
 @pytest.fixture(scope='function')
 def auth_client(client, test_user):
@@ -50,9 +46,8 @@ def auth_client(client, test_user):
 
 @pytest.fixture(scope='function')
 def test_poll(client):
-    with app.app_context():
-        poll = Poll(number=1, question="Test Poll?", choices=["Option 1", "Option 2"])
-        db.session.add(poll)
-        db.session.commit()
-        
-        yield poll
+    poll = Poll(number=1, question="Test Poll?", choices=["Option 1", "Option 2"])
+    db.session.add(poll)
+    db.session.commit()
+    yield poll
+    db.session.rollback()
