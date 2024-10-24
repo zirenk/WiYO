@@ -151,6 +151,14 @@ args = "Flask App"
 task = "workflow.run"
 args = "Test Coverage"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Setup Test DB"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Test Suite"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -530,6 +538,28 @@ waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Test Coverage"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m pytest --cov=. --cov-report=term-missing -v"
+
+[[workflows.workflow]]
+name = "Setup Test DB"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python tests/create_test_db.py && python -m pytest --cov=. --cov-report=term-missing -v"
+
+[[workflows.workflow]]
+name = "Test Suite"
 author = "agent"
 
 [workflows.workflow.metadata]
