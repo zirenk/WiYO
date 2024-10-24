@@ -143,6 +143,10 @@ args = "Verify Database"
 task = "workflow.run"
 args = "Setup Test Data"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask App"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -341,7 +345,7 @@ agentRequireRestartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flask db upgrade"
+args = "python create_tables.py && python -m pytest -v"
 
 [[workflows.workflow]]
 name = "Create Migration"
@@ -507,6 +511,18 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python debug_database.py"
+
+[[workflows.workflow]]
+name = "Flask App"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
+waitForPort = 5000
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
