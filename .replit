@@ -139,6 +139,10 @@ args = "Debug Database"
 task = "workflow.run"
 args = "Verify Database"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Setup Test Data"
+
 [[workflows.workflow]]
 name = "Start Flask App"
 author = "agent"
@@ -492,6 +496,17 @@ agentRequireRestartOnSave = false
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python verify_database.py"
+
+[[workflows.workflow]]
+name = "Setup Test Data"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python debug_database.py"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
